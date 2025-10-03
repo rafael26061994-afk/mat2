@@ -1,381 +1,729 @@
-// =================== app.js V. 24.10 (Refatorado em Classes) ===================
+// ==========================================================
+// === MÓDULO DE DADOS E CONTEÚDO (CONTEUDO_MATEMAGICA) ===
+// ==========================================================
+const MENSAGENS = {
+    elogios: [
+        "Fantástico! Você é um Mago da Fluência!",
+        "Incrível! Esse é o poder de um verdadeiro Aluno Mago!",
+        "Excelente! Não se distraia, mantenha o foco!",
+        "Uau! Sua concentração está no nível máximo!",
+        "Parabéns! Mantenha a sequência de acertos!"
+    ],
+    incentivos: [
+        "Não desista! Use o erro para fortalecer sua magia!",
+        "Um pequeno deslize, mas a próxima será perfeita!",
+        "Tudo bem errar. Lembre-se da regra e avance!",
+        "Sua jornada continua! Inspire, expire e tente novamente.",
+        "O erro é um portal para o aprendizado. Volte mais forte!"
+    ],
+    getElogio: () => MENSAGENS.elogios[Math.floor(Math.random() * MENSAGENS.elogios.length)],
+    getIncentivo: () => MENSAGENS.incentivos[Math.floor(Math.random() * MENSAGENS.incentivos.length)],
+};
 
-// --- UTILITIES (Funções Auxiliares) ---
-function getRandomInt(min, max) {
-    return Math.floor(Math.random() * (max - min + 1)) + min;
-}
+const CONTEUDO = {
+    gerarQuestao(operacao, nivel) {
+        const ranges = STATE.levelRanges[nivel] || STATE.levelRanges.facil;
+        let numMax1 = ranges.max1;
+        let expoMax = ranges.expo;
 
-// --- 1. CLASSE DE ESTADO E PERSISTÊNCIA ---
-class GameState {
-    constructor() {
-        this.state = {
-            playerName: "Mago(a) Desconhecido(a)",
-            xp: 0,
-            level: 1,
-            operation: 'soma',
-            difficulty: 'facil',
-            jogo: null, // Objeto temporário para a rodada atual
-            
-            // NOVO: Persistência do Tema de Acessibilidade
-            isHighContrast: false, 
-            
-            // NOVO: Estrutura de Ranking
-            ranking: {
-                'soma': [],
-                'subtracao': [],
-                'multiplicacao': [],
-                'divisao': [],
-                'fracoes': [],
-                'todas': []
-            },
-            
-            // NOVO: Estado temporário para a UI (limpo após exibição)
-            novoRecordeStatus: false, 
+        let num1, num2, resultado, pergunta, tipo;
+
+        // Lógica de Geração de Questões (Melhorada para usar ranges customizados)
+        if (operacao === 'adicao') {
+            tipo = 'adicao'; num1 = Math.floor(Math.random() * numMax1) + 1; num2 = Math.floor(Math.random() * numMax1) + 1; resultado = num1 + num2; pergunta = `${num1} + ${num2}`;
+        } else if (operacao === 'subtracao') {
+            tipo = 'subtracao'; num1 = Math.floor(Math.random() * numMax1) + 1; num2 = Math.floor(Math.random() * numMax1) + 1; if (num1 < num2) [num1, num2] = [num2, num1]; resultado = num1 - num2; pergunta = `${num1} - ${num2}`;
+        } else if (operacao === 'multiplicacao') {
+            tipo = 'multiplicacao'; 
+            let fatorMax = Math.min(20, Math.floor(numMax1 / 5) + 5); 
+            num1 = Math.floor(Math.random() * (fatorMax + 1)); num2 = Math.floor(Math.random() * (fatorMax + 1)); resultado = num1 * num2; pergunta = `${num1} × ${num2}`;
+        } else if (operacao === 'divisao') {
+            tipo = 'divisao'; 
+            let divisorMax = Math.min(15, Math.floor(numMax1 / 10) + 3); 
+            num2 = Math.floor(Math.random() * divisorMax) + 1; resultado = Math.floor(Math.random() * divisorMax) + 1; num1 = resultado * num2; pergunta = `${num1} ÷ ${num2}`;
+        } else if (operacao === 'potenciacao') {
+            tipo = 'potenciacao'; 
+            let baseMax = Math.min(10, Math.floor(numMax1 / 10) + 2); 
+            num1 = Math.floor(Math.random() * baseMax) + 1; num2 = Math.floor(Math.random() * expoMax) + 2; resultado = Math.pow(num1, num2); pergunta = `${num1} ^ ${num2}`;
+        } else { 
+            tipo = 'radiciacao'; 
+            let raizMax = Math.min(15, Math.floor(numMax1 / 10) + 3); 
+            resultado = Math.floor(Math.random() * raizMax) + 1; num1 = resultado * resultado; pergunta = `√${num1}`;
+        }
+        
+        const opcoes = new Set(); opcoes.add(resultado);
+        const desvioMax = nivel === 'facil' ? 5 : 10;
+        
+        // Gera opções falsas
+        while (opcoes.size < 4) {
+            let desvio = Math.floor(Math.random() * desvioMax) + 1;
+            let sinal = Math.random() < 0.5 ? 1 : -1;
+            let falsa = resultado + (desvio * sinal);
+            if ((tipo === 'divisao' || tipo === 'radiciacao' || tipo === 'subtracao') && falsa < 0) {
+                falsa = Math.abs(resultado - desvio);
+            }
+            if (falsa !== resultado) opcoes.add(falsa);
+        }
+        
+        const opcoesArray = Array.from(opcoes).sort(() => Math.random() - 0.5);
+
+        return {
+            pergunta: CONTEUDO.formatarNumero(pergunta) + ' = ?',
+            resposta: resultado,
+            opcoes: opcoesArray,
+            tipo: tipo,
+            nivel: nivel,
+            dica: CONTEUDO.gerarDica(tipo, nivel)
         };
-        this.loadState();
-        this.aplicarTemaInicial(); 
-    }
-
-    loadState() {
-        const savedState = localStorage.getItem('matemagicaState');
-        if (savedState) {
-            this.state = JSON.parse(savedState);
-        }
-    }
-
-    saveState() {
-        localStorage.setItem('matemagicaState', JSON.stringify(this.state));
-    }
+    },
     
-    get(key) {
-        return this.state[key];
-    }
-    
-    set(key, value) {
-        this.state[key] = value;
-        this.saveState();
-    }
-    
-    // NOVO: Aplica o tema salvo ao carregar a página
-    aplicarTemaInicial() {
-        if (this.state.isHighContrast) {
-            document.body.classList.add('high-contrast');
-        } else {
-            document.body.classList.remove('high-contrast');
-        }
-    }
-    
-    // NOVO: Alterna o tema
-    toggleHighContrast() {
-        const novoTema = !this.state.isHighContrast;
-        this.state.isHighContrast = novoTema;
-        this.aplicarTemaInicial(); // Aplica a mudança
-        this.saveState();
-    }
-}
-
-// --- 2. CLASSE DE LÓGICA DO JOGO ---
-class GameLogic {
-    constructor(stateManager) {
-        this.stateManager = stateManager; 
-    }
-
-    // --- LÓGICA DO JOGO ---
-    iniciarNovoJogo(operacao, dificuldade) {
-        this.stateManager.set('operation', operacao);
-        this.stateManager.set('difficulty', dificuldade);
-        this.stateManager.set('jogo', {
-            pontos: 0,
-            acertos: 0,
-            erros: 0,
-            comboAtual: 0,
-            maxCombo: 0,
-            xpTotal: 0,
-            questaoAtual: null
+    // NOVO: Função para formatação de números grandes (Separação de Milhares)
+    formatarNumero(texto) {
+        return texto.replace(/\b(\d{4,})\b/g, (match) => {
+            return Number(match).toLocaleString('pt-BR');
         });
-        this.gerarNovaQuestao();
-    }
-    
-    // NOVO: Geração de Questões de Fração
-    gerarQuestaoFracao() {
-        // [PROFESSOR DE MATEMÁTICA]: Lógica simplificada (denominadores iguais)
-        const d1 = getRandomInt(2, 8);
-        const d2 = d1; 
-        const n1 = getRandomInt(1, d1 - 1);
-        const n2 = getRandomInt(1, d2 - 1);
+    },
 
-        const questao = {
-            tipo: 'fracao',
-            enunciado: `${n1}/${d1} + ${n2}/${d2}`,
-            // Resultado na forma simplificada (exigirá uma função de simplificação)
-            respostaCorreta: (n1 + n2) + '/' + d1 // Resposta não simplificada
+    gerarDica(tipo, nivel) {
+        // ... (Dicas mantidas e reforçadas)
+        const d = {
+            multiplicacao: "Lembre-se da propriedade distributiva para números grandes! Qual a regra?",
+            divisao: "Use o critério de divisibilidade ou simplifique a fração. Qual o processo?",
+            adicao: "Agrupe os números para simplificar o cálculo mental. O que fazer com as unidades?",
+            potenciacao: "Potência de potência, multiplique os expoentes. Caso contrário, repita a base! Qual a operação inversa?",
+            radiciacao: "Radiciação é a operação inversa da potenciação. Pense: 'Qual número...?'",
+            subtracao: "Use o método de compensação: some o mesmo número a ambos para simplificar a conta! Qual a estratégia?"
         };
+
+        let dica = d[tipo] || "Calcule passo a passo. Respire fundo!";
         
-        return questao;
+        // NOVO: Pergunta de Reflexão no uso da Dica
+        return `DICA: ${dica} Pense na regra: **Você realmente precisa desta dica?**`;
     }
+};
 
-    // LÓGICA: Função de geração de questões
-    gerarNovaQuestao() {
-        const operacao = this.stateManager.get('operation');
-        const dificuldade = this.stateManager.get('difficulty');
-        let num1, num2, resultado, questao;
+// ===============================================
+// === VARIÁVEIS DE ESTADO E REFERÊNCIAS DOM ===
+// ===============================================
+const STATE = {
+    xpBase: 50,
+    xpAtual: 0,
+    playerLevel: 1, 
+    xpForNextLevel: 500, 
+    maxCombo: 1, 
+    comboStreak: 3, // NOVO: Acertos necessários para subir o combo (default 3)
+    lastOperation: null, 
+    tokens: 3, 
+    combo: 1,
+    modo: 'rapido',
+    operacao: null, 
+    nivel: 'facil',
+    ttsAtivo: true,
+    librasAtivo: true,
+    dislexiaAtiva: false, 
+    isHighContrast: false, 
+    fontSizeScale: 1.0, 
+    historicoErros: [],
+    questaoAtual: null,
+    timer: null,
+    tempoInicial: 10,
+    tempoRestante: 10,
+    acertosConsecutivos: 0,
+    professorModeAtivo: false,
+    temaAtual: 'tema-escuro', 
+    levelRanges: {
+        facil: { max1: 10, expo: 2 },
+        medio: { max1: 50, expo: 3 },
+        avancado: { max1: 100, expo: 4 }
+    },
+};
 
-        if (operacao === 'fracoes') {
-            questao = this.gerarQuestaoFracao();
-        } else {
-            // Lógica existente para operações básicas (soma, subtracao, multiplicacao, divisao, todas)
-            // ... (Mantenha sua lógica de geração aqui)
-            
-            // Exemplo para Soma:
-            num1 = getRandomInt(1, 10 * (dificuldade === 'facil' ? 1 : 10));
-            num2 = getRandomInt(1, 10 * (dificuldade === 'facil' ? 1 : 10));
-            resultado = num1 + num2;
-            questao = { 
-                tipo: operacao, 
-                enunciado: `${num1} ${operacao === 'soma' ? '+' : '*'} ${num2}`, 
-                respostaCorreta: resultado 
-            };
-        }
-
-        this.stateManager.set('jogo', {
-            ...this.stateManager.get('jogo'),
-            questaoAtual: questao
-        });
-
-        // A UI precisa renderizar essa questão
-        gameUI.renderizarQuestao(questao);
-    }
-
-    verificarResposta(respostaUsuario) {
-        const jogo = this.stateManager.get('jogo');
-        const questao = jogo.questaoAtual;
-        const acerto = (String(respostaUsuario) === String(questao.respostaCorreta));
-        
-        if (acerto) {
-            // Lógica de XP, Combo, etc.
-            
-            // ... (Lógica existente de acerto)
-            
-            this.gerarNovaQuestao();
-        } else {
-            // Lógica de Erro
-            
-            // ... (Lógica existente de erro)
-            
-            this.gerarNovaQuestao();
-        }
-        
-        if (jogo.acertos + jogo.erros >= 10) { // Fim do jogo
-            this.finalizarJogo();
-        }
-    }
+const DOM = {
+    // Telas
+    telaInicial: document.getElementById('tela-inicial'),
+    telaJogo: document.getElementById('tela-jogo'),
+    telaConfig: document.getElementById('tela-config'),
+    telaGrimorio: document.getElementById('tela-grimorio'),
+    professorModeContainer: document.getElementById('modo-professor-container'),
     
-    // NOVO: Lógica de Salvamento e Verificação de Recorde
-    salvarRanking(operacaoAtual, xpGanho, numAcertos, numCombos) {
-        const records = this.stateManager.get('ranking')[operacaoAtual];
-        
-        const novoRecorde = {
-            xp: xpGanho,
-            acertos: numAcertos,
-            combos: numCombos,
-            data: new Date().toLocaleDateString('pt-BR')
-        };
-        
-        // NOVO: VERIFICA SE É NOVO RECORD
-        const isNovoRecordePessoal = (
-            records.length === 0 || 
-            xpGanho > records[0].xp || 
-            (xpGanho === records[0].xp && numCombos > records[0].combos)
-        );
-        
-        records.push(novoRecorde);
-        records.sort((a, b) => {
-            if (b.xp !== a.xp) return b.xp - a.xp;
-            return b.combos - a.combos;
-        });
-        
-        const novoRanking = records.slice(0, 5);
-        
-        // NOVO: Atualiza o estado
-        const todosRankings = this.stateManager.get('ranking');
-        todosRankings[operacaoAtual] = novoRanking;
-        this.stateManager.set('ranking', todosRankings);
-
-        return isNovoRecordePessoal;
-    }
-
-    finalizarJogo() {
-        const jogo = this.stateManager.get('jogo');
-        
-        // NOVO: Salva o ranking e verifica o status
-        const isNovoRecorde = this.salvarRanking(
-            this.stateManager.get('operation'), 
-            jogo.xpTotal, 
-            jogo.acertos, 
-            jogo.maxCombo
-        );
-
-        // Define o status temporário para a UI
-        this.stateManager.set('novoRecordeStatus', isNovoRecorde);
-        
-        gameUI.mostrarTelaResultado(jogo);
-    }
-}
-
-// --- 3. CLASSE DE INTERFACE ---
-class GameUI {
-    constructor(logic) {
-        this.logic = logic;
-        this.state = logic.stateManager; // Acesso facilitado ao estado
-    }
+    // Inicial
+    displayLevel: document.getElementById('display-level'),
+    xpBarraProgresso: document.getElementById('xp-barra-progresso'), // NOVO
+    botoesOperacao: document.querySelectorAll('.opcoes-container button[data-operacao]'),
+    btnIniciar: document.getElementById('btn-iniciar'),
+    selectNivel: document.getElementById('select-nivel'),
     
-    atualizarHUD() {
-        document.getElementById('player-name').textContent = this.state.get('playerName');
-        document.getElementById('level-display').textContent = `Nível ${this.state.get('level')}`;
-        document.getElementById('xp-counter').textContent = `XP: ${this.state.get('xp')}`;
-    }
+    // Jogo
+    barraTempo: document.getElementById('barra-tempo'),
+    contadorCombo: document.getElementById('contador-combo'),
+    questaoTexto: document.getElementById('questao-texto'),
+    opcoesResposta: document.getElementById('opcoes-resposta'),
+    feedbackMentor: document.getElementById('feedback-mentor'),
+    btnAvancar: document.getElementById('btn-avancar'),
+    btnDica: document.getElementById('btn-dica'),
+    
+    // Acessibilidade/Config
+    btnToggleLibras: document.getElementById('btn-toggle-libras'),
+    btnToggleTts: document.getElementById('btn-toggle-tts'),
+    btnToggleDislexia: document.getElementById('btn-toggle-dislexia'),
+    btnToggleHighContrast: document.getElementById('btn-toggle-contraste'),
+    btnZoomIn: document.getElementById('btn-zoom-in'),
+    btnZoomOut: document.getElementById('btn-zoom-out'),
+    currentZoom: document.getElementById('current-zoom'),
+    toggleTema: document.getElementById('toggle-tema'),
+    
+    // Professor Mode
+    btnModoProfessor: document.getElementById('btn-modo-professor'),
+    xpBaseInput: document.getElementById('xp-base-input'),
+    comboStreakInput: document.getElementById('combo-streak-input'), // NOVO
+    btnExportarHistorico: document.getElementById('btn-exportar-historico'),
+    limparErros: document.getElementById('limpar-erros'), // NOVO: Reset Seletivo
+    
+    rangeFacilMax: document.getElementById('range-facil-max'),
+    rangeFacilExpo: document.getElementById('range-facil-expo'),
+    rangeMedioMax: document.getElementById('range-medio-max'),
+    rangeMedioExpo: document.getElementById('range-medio-expo'),
+    rangeAvancadoMax: document.getElementById('range-avancado-max'),
+    rangeAvancadoExpo: document.getElementById('range-avancado-expo'),
+    
+    // Grimório
+    errosChartCanvas: document.getElementById('erros-chart'), // NOVO
+    grimorioSemErrosChart: document.getElementById('grimorio-sem-erros-chart'), // NOVO
+    grimorioNivel: document.getElementById('grimorio-nivel'),
+    grimorioXpAtual: document.getElementById('grimorio-xp-atual'),
+    grimorioXpTotal: document.getElementById('grimorio-xp-total'),
+    grimorioMaxCombo: document.getElementById('grimorio-max-combo'),
+    grimorioSemErros: document.getElementById('grimorio-sem-erros'),
+    grimorioTabela: document.getElementById('grimorio-tabela'),
+    grimorioTbody: document.querySelector('#grimorio-tabela tbody'),
+};
 
-    mostrarTela(screenId) {
-        document.querySelectorAll('.screen').forEach(s => s.classList.add('hidden'));
-        document.getElementById(screenId).classList.remove('hidden');
-    }
+// Variável global para o gráfico
+let errosChart = null; 
 
-    renderizarQuestao(questao) {
-        const enunciadoElement = document.getElementById('enunciado-questao');
-        const fracaoContainer = document.getElementById('fracao-question-container');
+
+// ===============================================
+// === MÓDULO DE ACESSIBILIDADE E UI (UX/UI) ===
+// ===============================================
+
+const UI = {
+    navegar(telaId) {
+        clearInterval(STATE.timer); 
         
-        if (questao.tipo === 'fracao') {
-            enunciadoElement.classList.add('hidden');
-            fracaoContainer.classList.remove('hidden');
+        DOM.telaInicial.style.display = 'none';
+        DOM.telaJogo.style.display = 'none';
+        DOM.telaConfig.style.display = 'none';
+        DOM.professorModeContainer.style.display = 'none';
+        DOM.telaGrimorio.style.display = 'none';
 
-            // [LÓGICA FRAÇÕES]: Assumindo que o enunciado é 'n1/d1 + n2/d2'
-            const partes = questao.enunciado.split(' ');
-            const [n1, d1] = partes[0].split('/').map(Number);
-            const [n2, d2] = partes[2].split('/').map(Number);
+        if (telaId === 'inicial') {
+            DOM.telaInicial.style.display = 'flex';
+            UI.atualizarDisplayNivel();
+        }
+        else if (telaId === 'jogo') DOM.telaJogo.style.display = 'flex';
+        else if (telaId === 'config') DOM.telaConfig.style.display = 'flex';
+        else if (telaId === 'professor') LOGICA.entrarProfessorMode();
+        else if (telaId === 'grimorio') UI.mostrarGrimorio();
+    },
+
+    falar(texto) {
+        if (!STATE.ttsAtivo) return;
+        speechSynthesis.cancel();
+        
+        let textoCompleto = texto;
+        if (DOM.telaJogo.style.display === 'flex' && STATE.questaoAtual) {
+            const opcoesTexto = Array.from(DOM.opcoesResposta.children)
+                .map(btn => btn.textContent.replace('[', '').replace(']', ''))
+                .join('. ');
             
-            document.getElementById('n1').textContent = n1;
-            document.getElementById('d1').textContent = d1;
-            document.getElementById('n2').textContent = n2;
-            document.getElementById('d2').textContent = d2;
-            document.getElementById('operador-fracao').textContent = partes[1];
-
-        } else {
-            // Operações básicas
-            enunciadoElement.classList.remove('hidden');
-            fracaoContainer.classList.add('hidden');
-            enunciadoElement.textContent = questao.enunciado + ' = ?';
+            // Texto mais claro para TTS: 
+            textoCompleto = `${DOM.questaoTexto.textContent}. Opções: ${opcoesTexto}`;
         }
-
-        document.getElementById('answer-input').value = '';
-        document.getElementById('answer-input').focus();
-    }
+        
+        const utterance = new SpeechSynthesisUtterance(textoCompleto);
+        utterance.lang = 'pt-BR';
+        speechSynthesis.speak(utterance);
+    },
     
-    mostrarTelaResultado(jogo) {
-        document.getElementById('final-xp').textContent = jogo.xpTotal;
-        document.getElementById('final-acertos').textContent = jogo.acertos;
-        document.getElementById('final-combo').textContent = jogo.maxCombo;
-        
-        const recordBanner = document.getElementById('record-banner');
-        
-        if (this.state.get('novoRecordeStatus')) {
-            recordBanner.innerHTML = '<div class="new-record-animation">🎉 NOVO RECORDE PESSOAL! 🎉</div>';
-            // [UX/GAMIFICAÇÃO]: Adicionar som de celebração aqui!
-        } else {
-            recordBanner.innerHTML = '';
+    mostrarFeedback(texto, tipo) {
+        // NOVO: Adiciona a Pergunta de Reflexão no uso de Dica
+        if (tipo === 'dica') {
+            texto = texto.replace('**Você realmente precisa desta dica?**', 'Pense bem e não gaste seus tokens a toa.');
         }
-        
-        // Limpa o status temporário
-        this.state.set('novoRecordeStatus', false); 
-        
-        this.mostrarTela('game-result-screen');
-    }
 
-    // NOVO: Função para renderizar o ranking
-    renderizarRankingGrimorio(operacao = 'soma') {
-        const tableBody = document.getElementById('ranking-table-body');
-        const records = this.state.get('ranking')[operacao] || [];
-        tableBody.innerHTML = ''; 
+        DOM.feedbackMentor.textContent = texto;
+        DOM.feedbackMentor.className = 'feedback-box';
+        if (tipo === 'acerto') DOM.feedbackMentor.classList.add('feedback-acerto');
+        else if (tipo === 'erro') DOM.feedbackMentor.classList.add('feedback-erro');
+        else if (tipo === 'dica') DOM.feedbackMentor.classList.add('dica');
+        
+        UI.falar(`${texto}`);
+    },
+    
+    // NOVO: Atualiza display de Nível e XP (com barra de progresso)
+    atualizarDisplayNivel() {
+        DOM.displayLevel.textContent = `Mago Nível ${STATE.playerLevel} | XP: ${STATE.xpAtual.toLocaleString('pt-BR')}/${STATE.xpForNextLevel.toLocaleString('pt-BR')}`;
+        
+        const xpProximoNivel = STATE.xpForNextLevel;
+        const xpAnterior = STATE.playerLevel > 1 ? (xpProximoNivel - (500 * STATE.playerLevel)) : 0; 
+        const xpNecessario = xpProximoNivel - xpAnterior;
+        const xpFaltando = xpProximoNivel - STATE.xpAtual;
+        const xpGanho = STATE.xpAtual - xpAnterior;
+        
+        let porcentagem = (xpGanho / xpNecessario) * 100;
+        if (porcentagem < 0) porcentagem = 0;
 
-        if (records.length === 0) {
-            tableBody.innerHTML = '<tr><td colspan="5">Nenhum recorde registrado nesta operação. Jogue agora!</td></tr>';
+        DOM.xpBarraProgresso.style.width = `${porcentagem}%`;
+        
+    },
+
+    // NOVO: Implementação do Gráfico de Erros
+    renderizarGraficoErros() {
+        if (!DOM.errosChartCanvas) return;
+
+        const contagemErros = STATE.historicoErros.reduce((acc, erro) => {
+            acc[erro.operacao] = (acc[erro.operacao] || 0) + 1;
+            return acc;
+        }, {});
+        
+        const labels = Object.keys(contagemErros).map(op => op.charAt(0).toUpperCase() + op.slice(1));
+        const data = Object.values(contagemErros);
+
+        if (data.length === 0) {
+            DOM.errosChartCanvas.style.display = 'none';
+            DOM.grimorioSemErrosChart.style.display = 'block';
+            if (errosChart) errosChart.destroy();
             return;
         }
 
-        records.forEach((record, index) => {
-            const newRow = tableBody.insertRow();
-            newRow.insertCell().textContent = index + 1;
-            newRow.insertCell().textContent = record.xp;
-            newRow.insertCell().textContent = record.acertos;
-            newRow.insertCell().textContent = record.combos;
-            newRow.insertCell().textContent = record.data;
+        DOM.errosChartCanvas.style.display = 'block';
+        DOM.grimorioSemErrosChart.style.display = 'none';
+
+        if (errosChart) errosChart.destroy(); // Destrói instância anterior
+
+        errosChart = new Chart(DOM.errosChartCanvas, {
+            type: 'pie',
+            data: {
+                labels: labels,
+                datasets: [{
+                    data: data,
+                    backgroundColor: [
+                        '#E91E63', '#9B59B6', '#3498DB', '#2ECC71', '#F1C40F', '#E74C3C'
+                    ],
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                        labels: {
+                            color: document.body.classList.contains('tema-claro') ? '#212529' : 'white',
+                            font: { size: 14 * STATE.fontSizeScale }
+                        }
+                    },
+                    title: { display: false }
+                }
+            }
         });
+    },
+
+    // NOVO: Mostra a tela do Grimório (Relatório)
+    mostrarGrimorio() {
+        // Atualiza Dados
+        DOM.grimorioNivel.textContent = STATE.playerLevel;
+        DOM.grimorioXpAtual.textContent = STATE.xpAtual.toLocaleString('pt-BR');
+        DOM.grimorioXpTotal.textContent = STATE.xpForNextLevel.toLocaleString('pt-BR');
+        DOM.grimorioMaxCombo.textContent = `x${STATE.maxCombo}`;
+
+        // Tabela de Erros Recentes
+        DOM.grimorioTbody.innerHTML = '';
+        if (STATE.historicoErros.length > 0) {
+            DOM.grimorioSemErros.style.display = 'none';
+            DOM.grimorioTabela.style.display = 'table';
+            STATE.historicoErros.slice(-10).reverse().forEach(erro => {
+                const row = DOM.grimorioTbody.insertRow();
+                row.insertCell().textContent = CONTEUDO.formatarNumero(erro.pergunta);
+                row.insertCell().textContent = erro.operacao.charAt(0).toUpperCase() + erro.operacao.slice(1);
+                row.insertCell().textContent = erro.nivel.charAt(0).toUpperCase() + erro.nivel.slice(1);
+            });
+        } else {
+            DOM.grimorioSemErros.style.display = 'block';
+            DOM.grimorioTabela.style.display = 'none';
+        }
+        
+        // Renderiza o Gráfico
+        UI.renderizarGraficoErros();
+
+        UI.navegar('grimorio');
+    },
+    
+    // Funções de Acessibilidade (Refinadas para uso de DOM e STATE)
+    aplicarTema(tema) {
+        STATE.temaAtual = tema;
+        document.body.classList.remove('tema-claro', 'tema-escuro');
+        document.body.classList.add(tema);
+        DOM.toggleTema.checked = tema === 'tema-claro'; 
+    },
+    aplicarDislexia(ativo) {
+        STATE.dislexiaAtiva = ativo;
+        document.body.classList.toggle('modo-dislexia', ativo);
+        DOM.btnToggleDislexia.classList.toggle('ativo', ativo);
+    },
+    aplicarHighContrast(ativo) {
+        STATE.isHighContrast = ativo;
+        document.body.classList.toggle('modo-alto-contraste', ativo);
+        DOM.btnToggleHighContrast.classList.toggle('ativo', ativo);
+    },
+    aplicarTts(ativo) {
+        STATE.ttsAtivo = ativo;
+        DOM.btnToggleTts.classList.toggle('ativo', ativo);
+        if (!ativo) speechSynthesis.cancel();
+    },
+    aplicarLibras(ativo) {
+        STATE.librasAtivo = ativo;
+        const vlibrasDiv = document.querySelector('div[vw]');
+        if (vlibrasDiv) {
+            vlibrasDiv.classList.toggle('enabled', ativo);
+        }
+        DOM.btnToggleLibras.classList.toggle('ativo', ativo);
+    },
+    aplicarTamanhoFonte(scale) {
+        STATE.fontSizeScale = Math.min(1.4, Math.max(0.8, scale));
+        document.documentElement.style.setProperty('--font-scale', STATE.fontSizeScale);
+        
+        const percent = Math.round(STATE.fontSizeScale * 100);
+        DOM.currentZoom.textContent = `${percent}%`;
+    },
+    atualizarTokens() {
+        DOM.btnDica.textContent = `FEITIÇO DA REGRA (Tokens: ${STATE.tokens})`;
+        DOM.btnDica.disabled = STATE.tokens <= 0;
+    },
+};
+
+// ========================================================
+// === MÓDULO DE LÓGICA DO JOGO E GAMIFICAÇÃO ===
+// ========================================================
+
+const LOGICA = {
+    salvarEstado() {
+        localStorage.setItem('matemagicaState', JSON.stringify(STATE));
+    },
+
+    carregarEstado() {
+        const savedState = localStorage.getItem('matemagicaState');
+        if (savedState) {
+            const loaded = JSON.parse(savedState);
+            Object.assign(STATE, loaded);
+            
+            STATE.professorModeAtivo = false; 
+            
+            // Aplica as configurações
+            UI.aplicarTema(STATE.temaAtual);
+            UI.aplicarDislexia(STATE.dislexiaAtiva);
+            UI.aplicarLibras(STATE.librasAtivo);
+            UI.aplicarTts(STATE.ttsAtivo);
+            UI.aplicarHighContrast(STATE.isHighContrast);
+            UI.aplicarTamanhoFonte(STATE.fontSizeScale);
+            
+            // Atualiza campos do Modo Professor
+            DOM.xpBaseInput.value = STATE.xpBase;
+            DOM.comboStreakInput.value = STATE.comboStreak; // NOVO
+            DOM.rangeFacilMax.value = STATE.levelRanges.facil.max1;
+            DOM.rangeFacilExpo.value = STATE.levelRanges.facil.expo;
+            DOM.rangeMedioMax.value = STATE.levelRanges.medio.max1;
+            DOM.rangeMedioExpo.value = STATE.levelRanges.medio.expo;
+            DOM.rangeAvancadoMax.value = STATE.levelRanges.avancado.max1;
+            DOM.rangeAvancadoExpo.value = STATE.levelRanges.avancado.expo;
+            
+        } else {
+            // Se não houver estado, aplica configurações padrão e salva
+            UI.aplicarTts(true); UI.aplicarLibras(true); UI.aplicarTema('tema-escuro');
+            UI.aplicarDislexia(false); UI.aplicarHighContrast(false); UI.aplicarTamanhoFonte(1.0);
+            LOGICA.salvarEstado();
+        }
+        UI.atualizarDisplayNivel();
+    },
+
+    // ... (Outras funções LOGICA mantidas ou com pequenos ajustes)
+
+    iniciarSessao() {
+        // ...
+        LOGICA.proximaQuestao();
+        UI.navegar('jogo');
+        DOM.questaoTexto.focus(); // Foco no elemento principal da questão
+    },
+
+    proximaQuestao() {
+        DOM.btnAvancar.style.display = 'none';
+        DOM.opcoesResposta.innerHTML = '';
+        
+        let questao = CONTEUDO.gerarQuestao(STATE.operacao, STATE.nivel);
+
+        STATE.questaoAtual = questao;
+        DOM.questaoTexto.textContent = questao.pergunta;
+        
+        // Formatação de combo (Ex: x1 -> x2)
+        DOM.contadorCombo.textContent = `Tokens: ${STATE.tokens} | Combo: x${STATE.combo}`;
+        
+        questao.opcoes.forEach((opcao, index) => {
+            const btn = document.createElement('button');
+            // NOVO: Formata as opções para milhares (ex: 1.200)
+            const respostaFormatada = CONTEUDO.formatarNumero(opcao.toString());
+            btn.innerHTML = `[${index + 1}]) <span class="resposta-formatada">${respostaFormatada}</span>`;
+            btn.dataset.resposta = opcao;
+            btn.dataset.atalho = index + 1;
+            btn.onclick = LOGICA.checarResposta;
+            DOM.opcoesResposta.appendChild(btn);
+        });
+        
+        if (STATE.modo === 'rapido') {
+            LOGICA.iniciarTimer();
+            DOM.barraTempo.parentElement.style.display = 'block';
+        } else {
+            clearInterval(STATE.timer);
+            DOM.barraTempo.parentElement.style.display = 'none';
+        }
+        UI.atualizarTokens();
+        
+        UI.falar(`Questão: ${questao.pergunta}`);
+    },
+    
+    checarResposta(event) {
+        clearInterval(STATE.timer);
+        const respostaUsuario = Number(event.target.dataset.resposta);
+        const acertou = respostaUsuario === STATE.questaoAtual.resposta;
+        LOGICA.finalizarQuestao(acertou, acertou ? null : "Resposta Incorreta.", event.target);
+    },
+
+    finalizarQuestao(acertou, razao, elementoClicado) {
+        Array.from(DOM.opcoesResposta.children).forEach(btn => btn.disabled = true);
+        DOM.btnDica.disabled = true;
+
+        const correta = Array.from(DOM.opcoesResposta.children).find(btn => Number(btn.dataset.resposta) === STATE.questaoAtual.resposta);
+
+        if (acertou) {
+            const tempoAjustado = STATE.modo === 'rapido' ? Math.max(1, STATE.tempoInicial - STATE.tempoRestante) : 1;
+            
+            // Bônus de Variedade (15%)
+            const isVariety = STATE.operacao !== STATE.lastOperation;
+            const varietyMultiplier = isVariety ? 1.15 : 1; 
+
+            const xpGanho = STATE.xpBase * STATE.combo * (STATE.modo === 'rapido' ? (STATE.tempoInicial / tempoAjustado) : 1) * varietyMultiplier;
+            
+            STATE.xpAtual += Math.round(xpGanho);
+            STATE.acertosConsecutivos++;
+            
+            // NOVO: Usa comboStreak customizável
+            STATE.combo = Math.floor(STATE.acertosConsecutivos / STATE.comboStreak) + 1;
+            STATE.maxCombo = Math.max(STATE.maxCombo, STATE.combo);
+            
+            // NOVO: Recompensa de Tokens ajustada (1 token a cada 5 acertos, por exemplo)
+            if (STATE.acertosConsecutivos % 5 === 0) {
+                 STATE.tokens += 1;
+            }
+            STATE.lastOperation = STATE.operacao;
+            
+            // Checagem de Level Up
+            if (STATE.xpAtual >= STATE.xpForNextLevel) {
+                STATE.playerLevel++;
+                STATE.xpForNextLevel += 500 * STATE.playerLevel;
+                // NOVO: Recompensa Extra no Level Up
+                STATE.tokens += 5; 
+                UI.mostrarFeedback(`SUBIU DE NÍVEL! Agora você é Mago Nível ${STATE.playerLevel}! +${Math.round(xpGanho)} XP e 5 Tokens Bônus!`, 'acerto');
+            } else {
+                const varietyText = isVariety ? " (Bônus de Variedade!)" : "";
+                UI.mostrarFeedback(`${MENSAGENS.getElogio()} +${Math.round(xpGanho)} XP!${varietyText}`, 'acerto');
+            }
+            
+            if (elementoClicado) elementoClicado.classList.add('feedback-acerto');
+            
+        } else {
+            STATE.acertosConsecutivos = 0;
+            STATE.combo = 1;
+            STATE.lastOperation = null;
+
+            STATE.historicoErros.push({ 
+                pergunta: STATE.questaoAtual.pergunta, 
+                respostaCorreta: STATE.questaoAtual.resposta,
+                operacao: STATE.operacao, 
+                nivel: STATE.nivel 
+            });
+
+            document.body.style.backgroundColor = 'rgba(231, 76, 60, 0.3)';
+            setTimeout(() => UI.aplicarTema(STATE.temaAtual), 500);
+            
+            const textoCorreto = `${MENSAGENS.getIncentivo()} A resposta correta era ${STATE.questaoAtual.resposta}.`;
+            UI.mostrarFeedback(textoCorreto, 'erro');
+            
+            if (elementoClicado) elementoClicado.classList.add('feedback-erro');
+        }
+        
+        if (correta) {
+            correta.classList.add('resposta-correta');
+        }
+        
+        LOGICA.salvarEstado();
+        DOM.contadorCombo.textContent = `Tokens: ${STATE.tokens} | Combo: x${STATE.combo}`;
+        DOM.btnAvancar.style.display = 'block';
+        
+        // NOVO: Foco no botão de avançar para acessibilidade
+        DOM.btnAvancar.focus();
+        
+        UI.atualizarDisplayNivel();
+    },
+
+    usarDica() {
+        // ... (Lógica da Dica mantida)
+        if (STATE.tokens <= 0) {
+            UI.mostrarFeedback("Seus Tokens acabaram! Acerte mais questões para recarregar a magia.", 'erro');
+            return;
+        }
+        STATE.tokens -= 1;
+        
+        if (STATE.modo === 'rapido') {
+            STATE.tempoRestante = Math.min(STATE.tempoInicial, STATE.tempoRestante + 5);
+            // Re-inicia o timer com o novo tempo
+            LOGICA.iniciarTimer(); 
+        } 
+        
+        UI.mostrarFeedback(STATE.questaoAtual.dica, 'dica');
+        UI.atualizarTokens();
+        LOGICA.salvarEstado();
+    },
+
+    // --- FUNÇÕES MODO PROFESSOR ---
+
+    entrarProfessorMode() {
+        // Sincroniza inputs com o STATE
+        DOM.xpBaseInput.value = STATE.xpBase;
+        DOM.comboStreakInput.value = STATE.comboStreak;
+        DOM.rangeFacilMax.value = STATE.levelRanges.facil.max1;
+        DOM.rangeFacilExpo.value = STATE.levelRanges.facil.expo;
+        DOM.rangeMedioMax.value = STATE.levelRanges.medio.max1;
+        DOM.rangeMedioExpo.value = STATE.levelRanges.medio.expo;
+        DOM.rangeAvancadoMax.value = STATE.levelRanges.avancado.max1;
+        DOM.rangeAvancadoExpo.value = STATE.levelRanges.avancado.expo;
+
+        DOM.professorModeContainer.style.display = 'flex';
+        UI.falar("Modo Professor Mago ativado.");
+    },
+
+    sairProfessorMode() {
+        // Salva XP Base e Combo Streak
+        STATE.xpBase = Number(DOM.xpBaseInput.value);
+        STATE.comboStreak = Number(DOM.comboStreakInput.value);
+
+        // Salva Ranges
+        STATE.levelRanges.facil.max1 = Number(DOM.rangeFacilMax.value);
+        STATE.levelRanges.facil.expo = Number(DOM.rangeFacilExpo.value);
+        STATE.levelRanges.medio.max1 = Number(DOM.rangeMedioMax.value);
+        STATE.levelRanges.medio.expo = Number(DOM.rangeMedioExpo.value);
+        STATE.levelRanges.avancado.max1 = Number(DOM.rangeAvancadoMax.value);
+        STATE.levelRanges.avancado.expo = Number(DOM.rangeAvancadoExpo.value);
+
+        LOGICA.salvarEstado();
+        UI.navegar('inicial');
+        UI.falar("Configurações salvas. Saindo do Modo Professor.");
+    },
+    
+    // NOVO: Limpeza Seletiva de Erros
+    limparApenasErros() {
+        if (confirm("Deseja LIMPAR APENAS O HISTÓRICO DE ERROS? O progresso (XP, Nível) será mantido.")) {
+            STATE.historicoErros = [];
+            LOGICA.salvarEstado();
+            UI.mostrarFeedback('Histórico de erros limpo com sucesso!', 'acerto');
+            UI.navegar('inicial');
+        }
+    },
+
+    limparTudo() {
+        if (confirm("ATENÇÃO: Isso limpará permanentemente todo o progresso (XP, Tokens, Erros). Continuar?")) {
+            localStorage.removeItem('matemagicaState');
+            location.reload(); 
+        }
+    },
+
+    // Exportação de Histórico para CSV (Mantida)
+    exportarHistorico() {
+        if (STATE.historicoErros.length === 0) {
+            alert("Não há erros registrados para exportar.");
+            return;
+        }
+        const header = "Pergunta;Resposta Correta;Operacao;Nivel\n";
+        const rows = STATE.historicoErros.map(e => `${e.pergunta};${e.respostaCorreta};${e.operacao};${e.nivel}`).join('\n');
+        const csv = header + rows;
+        
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = `Matemagica_Historico_Erros_${new Date().toISOString().slice(0, 10)}.csv`;
+        link.click();
+        
+        UI.mostrarFeedback('Histórico exportado com sucesso!', 'acerto');
     }
+};
 
-    // NOVO: Atualiza o status do botão de contraste
-    updateContrastButton() {
-        const isHighContrast = this.state.get('isHighContrast');
-        document.getElementById('contrast-status').textContent = isHighContrast ? 'LIGADO' : 'DESLIGADO';
-    }
-}
-
-// --- INICIALIZAÇÃO DA APLICAÇÃO ---
-
-let stateManager, gameLogic, gameUI;
-
+// ===============================================
+// === INICIALIZAÇÃO E EVENT LISTENERS ===
+// ===============================================
 document.addEventListener('DOMContentLoaded', () => {
-    // 1. Instancia as classes
-    stateManager = new GameState();
-    gameLogic = new GameLogic(stateManager);
-    gameUI = new GameUI(gameLogic);
-
-    // 2. Event Listeners do Menu
-    document.getElementById('start-game-button').addEventListener('click', () => {
-        const operacao = document.getElementById('operation-select').value;
-        const dificuldade = document.getElementById('difficulty-select').value;
-        gameLogic.iniciarNovoJogo(operacao, dificuldade);
-        gameUI.mostrarTela('game-screen');
-    });
-
-    // 3. Event Listener da Resposta
-    document.getElementById('submit-answer-button').addEventListener('click', () => {
-        const resposta = document.getElementById('answer-input').value;
-        gameLogic.verificarResposta(resposta);
+    LOGICA.carregarEstado();
+    UI.navegar('inicial');
+    
+    // --- Eventos de Acessibilidade Rápida ---
+    DOM.btnToggleLibras.onclick = () => { UI.aplicarLibras(!STATE.librasAtivo); LOGICA.salvarEstado(); };
+    DOM.btnToggleTts.onclick = () => { UI.aplicarTts(!STATE.ttsAtivo); LOGICA.salvarEstado(); };
+    DOM.btnToggleDislexia.onclick = () => { UI.aplicarDislexia(!STATE.dislexiaAtiva); LOGICA.salvarEstado(); };
+    DOM.btnToggleHighContrast.onclick = () => { UI.aplicarHighContrast(!STATE.isHighContrast); LOGICA.salvarEstado(); };
+    
+    DOM.btnZoomIn.onclick = () => { UI.aplicarTamanhoFonte(STATE.fontSizeScale + 0.1); LOGICA.salvarEstado(); };
+    DOM.btnZoomOut.onclick = () => { UI.aplicarTamanhoFonte(STATE.fontSizeScale - 0.1); LOGICA.salvarEstado(); };
+    
+    // --- Eventos de Inicialização ---
+    DOM.botoesOperacao.forEach(btn => { btn.onclick = LOGICA.selecionarOperacao; });
+    document.getElementById('modo-rapido').onclick = (e) => { document.getElementById('modo-normal').classList.remove('ativo'); e.target.classList.add('ativo'); LOGICA.salvarEstado(); };
+    document.getElementById('modo-normal').onclick = (e) => { document.getElementById('modo-rapido').classList.remove('ativo'); e.target.classList.add('ativo'); LOGICA.salvarEstado(); };
+    
+    DOM.btnIniciar.onclick = LOGICA.iniciarSessao;
+    document.getElementById('btn-grimorio').onclick = () => UI.navegar('grimorio');
+    
+    // --- Eventos de Jogo ---
+    document.getElementById('btn-voltar-jogo').onclick = () => UI.navegar('inicial');
+    DOM.btnAvancar.onclick = LOGICA.proximaQuestao;
+    DOM.btnDica.onclick = LOGICA.usarDica;
+    
+    // --- Eventos de Configurações Adicionais ---
+    document.getElementById('btn-config').onclick = () => UI.navegar('config');
+    document.getElementById('btn-voltar-config').onclick = () => UI.navegar('inicial');
+    document.getElementById('btn-voltar-grimorio').onclick = () => UI.navegar('inicial');
+    DOM.toggleTema.onchange = (e) => { UI.aplicarTema(e.target.checked ? 'tema-claro' : 'tema-escuro'); LOGICA.salvarEstado(); };
+    
+    // --- Eventos Modo Professor ---
+    DOM.btnModoProfessor.onclick = LOGICA.acessarProfessorMode;
+    document.getElementById('btn-sair-professor').onclick = LOGICA.sairProfessorMode;
+    document.getElementById('limpar-historico').onclick = LOGICA.limparTudo;
+    DOM.limparErros.onclick = LOGICA.limparApenasErros; // NOVO: Reset Seletivo
+    DOM.btnExportarHistorico.onclick = LOGICA.exportarHistorico;
+    
+    // --- Atalhos de Teclado (para o Jogo) ---
+    document.addEventListener('keydown', (e) => {
+        if (DOM.telaJogo.style.display === 'flex') {
+            // Atalhos 1, 2, 3, 4 para respostas
+            if (DOM.btnAvancar.style.display === 'none' && e.key >= '1' && e.key <= '4') {
+                const btn = document.querySelector(`[data-atalho="${e.key}"]`);
+                if (btn && !btn.disabled) {
+                    btn.click();
+                    e.preventDefault();
+                }
+            }
+            // Enter/Espaço para avançar
+            if ((e.key === 'Enter' || e.key === ' ') && DOM.btnAvancar.style.display !== 'none') {
+                DOM.btnAvancar.click();
+                e.preventDefault();
+            }
+        }
     });
     
-    // 4. Event Listener para Voltar ao Menu
-    document.getElementById('return-to-menu-button').addEventListener('click', () => {
-        gameUI.mostrarTela('menu-screen');
-        gameUI.atualizarHUD();
-    });
-
-    // 5. Event Listeners do Grimório
-    document.getElementById('open-grimorio-button').addEventListener('click', () => {
-        gameUI.renderizarRankingGrimorio('soma'); // Inicializa o ranking na aba Soma
-        gameUI.updateContrastButton();
-        gameUI.mostrarTela('grimorio');
-    });
-
-    document.getElementById('close-grimorio-button').addEventListener('click', () => {
-        gameUI.mostrarTela('menu-screen');
-    });
-    
-    // 6. NOVO: Event Listeners das Abas do Ranking
-    document.querySelectorAll('#ranking-local .tab-button').forEach(button => {
-        button.addEventListener('click', (event) => {
-            const selectedOp = event.target.getAttribute('data-op');
-            document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
-            event.target.classList.add('active');
-            gameUI.renderizarRankingGrimorio(selectedOp);
-        });
-    });
-
-    // 7. NOVO: Event Listener do Toggle de Contraste
-    document.getElementById('toggle-contrast-button').addEventListener('click', () => {
-        stateManager.toggleHighContrast();
-        gameUI.updateContrastButton();
-    });
-
-    // Chamada inicial
-    gameUI.atualizarHUD();
-    gameUI.mostrarTela('menu-screen');
+    UI.atualizarTokens();
 });

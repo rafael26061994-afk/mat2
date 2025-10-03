@@ -3,129 +3,208 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Matemágica - O Desafio do Mago</title>
+    <title>Matemágica - A Jornada da Fluência (V. 24.8)</title>
+    
     <link rel="stylesheet" href="styles.css">
+    
+    <link href="https://fonts.googleapis.com/css2?family=Open+Dyslexic:wght@400;700&display=swap" rel="stylesheet">
+    
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+    
+    <script src="https://vlibras.gov.br/app/vlibras-plugin.js"></script>
+    
+    <script type="module" src="app.js" defer></script>
 </head>
-<body>
-    <div id="app-container">
+<body class="tema-escuro">
+    
+    <div vw class="enabled">
+        <div vw-access-button class="active" aria-label="Acessibilidade em Libras"></div>
+        <div vw-plugin-wrapper>
+            <div class="vw-plugin-top-row"></div>
+        </div>
+    </div>
+    
+    <div id="tela-inicial" class="container"> 
         
-        <header id="hud">
-            <div id="player-info">
-                <span id="player-name">Mago(a) Desconhecido(a)</span>
+        <div class="acessibilidade-bar">
+            <button id="btn-toggle-contraste" aria-label="Ativar Alto Contraste">🌗</button>
+            <button id="btn-toggle-libras" aria-label="Ativar VLibras">🤟</button>
+            <button id="btn-toggle-tts" aria-label="Ativar Leitura em Voz (TTS)">🗣️</button>
+            <button id="btn-toggle-dislexia" aria-label="Ativar Modo Dislexia">🔤</button>
+            <button id="btn-zoom-out" aria-label="Diminuir Zoom" style="font-weight: bold; font-size: 1.2em;">-</button>
+            <span id="current-zoom" style="font-size: 1em;">100%</span>
+            <button id="btn-zoom-in" aria-label="Aumentar Zoom" style="font-weight: bold; font-size: 1.2em;">+</button>
+            <button id="btn-config" aria-label="Abrir Configurações">⚙️</button>
+        </div>
+        
+        <header class="header">
+            <h1 id="app-logo">Matemágica</h1>
+            <p>A Jornada da Fluência Matemática</p>
+            
+            <div id="display-level" aria-live="polite">Mago Nível 1 | XP: 0/500</div>
+            
+            <div class="xp-barra-container">
+                <div id="xp-barra-progresso" class="xp-barra-progresso"></div>
             </div>
-            <div id="xp-info">
-                <span id="level-display">Nível 1</span>
-                <span id="xp-counter">XP: 0</span>
-            </div>
-            <button id="open-grimorio-button" class="button-secondary">Grimório (Progresso)</button>
         </header>
 
-        <main id="game-screen">
-            <div id="question-area">
-                
-                <p id="enunciado-questao" class="big-text"></p>
-                
-                <div id="fracao-question-container" class="fracao-container hidden">
-                    <div class="fracao">
-                        <span class="numerador" id="n1">?</span>
-                        <span class="barra"></span>
-                        <span class="denominador" id="d1">?</span>
-                    </div>
-                    
-                    <span class="operador" id="operador-fracao">+</span>
-
-                    <div class="fracao">
-                        <span class="numerador" id="n2">?</span>
-                        <span class="barra"></span>
-                        <span class="denominador" id="d2">?</span>
-                    </div>
-                    
-                    <span class="operador">=</span>
-                </div>
+        <div class="card">
+            <h2>1. Escolha a Operação</h2>
+            
+            <div class="opcoes-container" style="margin-bottom: 25px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                <button data-operacao="adicao" class="btn-secundario" aria-label="Adição">Adição (+)</button>
+                <button data-operacao="subtracao" class="btn-secundario" aria-label="Subtração">Subtração (-)</button>
+                <button data-operacao="multiplicacao" class="btn-secundario" aria-label="Multiplicação">Multiplicação (×)</button>
+                <button data-operacao="divisao" class="btn-secundario" aria-label="Divisão">Divisão (÷)</button>
+                <button data-operacao="potenciacao" class="btn-secundario" aria-label="Potenciação">Potenciação ($$x^y$$)</button>
+                <button data-operacao="radiciacao" class="btn-secundario" aria-label="Radiciação">Radiciação ($\sqrt{x}$)</button>
             </div>
-
-            <input type="number" id="answer-input" placeholder="Sua Resposta">
-            <button id="submit-answer-button" class="button-primary">Lançar Feitiço (Responder)</button>
-
-            <p id="feedback-message" class="feedback-text"></p>
-        </main>
-
-        <section id="menu-screen" class="screen">
-            <h2>Escolha seu Desafio Mágico</h2>
-            <select id="operation-select">
-                <option value="soma">Adição Mágica</option>
-                <option value="subtracao">Subtração Arcana</option>
-                <option value="multiplicacao">Multiplicação Estelar</option>
-                <option value="divisao">Divisão Elemental</option>
-                <option value="fracoes">Frações Proibidas (Novo!)</option>
-                <option value="todas">Desafio do Arquimago</option>
+            
+            <h2 id="titulo-modo" style="margin-top: 40px;">2. Escolha o Nível e Modo</h2>
+            
+            <select id="select-nivel" aria-label="Selecione o Nível de Dificuldade" style="width: 100%; margin-bottom: 20px;">
+                <option value="facil">Fácil</option>
+                <option value="medio">Médio</option>
+                <option value="avancado">Avançado</option>
             </select>
-            <select id="difficulty-select">
-                <option value="facil">Aprendiz (Fácil)</option>
-                <option value="medio">Mago (Médio)</option>
-                <option value="dificil">Arquimago (Difícil)</option>
-            </select>
-            <button id="start-game-button" class="button-primary">Começar Jornada</button>
-        </section>
 
-        <section id="game-result-screen" class="screen hidden">
-            <h2>Fim da Rodada!</h2>
-            <div id="record-banner"></div> 
-            
-            <p>XP Total Ganho: <span id="final-xp">0</span></p>
-            <p>Acertos: <span id="final-acertos">0</span></p>
-            <p>Combo Máximo: <span id="final-combo">0</span></p>
-            
-            <button id="return-to-menu-button" class="button-primary">Voltar ao Menu</button>
-        </section>
+            <div class="opcoes-container" style="margin-bottom: 30px;">
+                <button id="modo-rapido" class="ativo" data-modo="rapido" aria-label="Modo Rápido, 10 segundos">Modo Rápido (10s)</button>
+                <button id="modo-normal" data-modo="normal" aria-label="Modo Normal, Sem Tempo">Modo Normal (Sem Tempo)</button>
+            </div>
 
-        <section id="grimorio" class="screen hidden">
-            <h2>O Grimório da Sabedoria</h2>
+            <button id="btn-iniciar" style="width: 100%;" class="btn-principal" disabled>
+                SELECIONE A OPERAÇÃO
+            </button>
             
-            <div id="progresso-info">
-                <h3>Seu Progresso Atual</h3>
-                <p>Nível de Mago: <span id="grimorio-level">1</span></p>
-                <p>XP Acumulado: <span id="grimorio-xp">0</span></p>
+            <button id="btn-grimorio" class="btn-secundario" style="width: 100%; margin-top: 20px;" aria-label="Abrir Meu Grimório (Relatório de Desempenho)">
+                MEU GRIMÓRIO (RELATÓRIO)
+            </button>
+        </div>
+        
+        <a id="btn-modo-professor">Acessar Modo Professor</a>
+    </div>
+
+    <div id="tela-jogo" class="container" style="position: relative; display: none;">
+        <button id="btn-voltar-jogo" class="btn-voltar" aria-label="Voltar para o Menu Inicial">
+            🏠 Voltar ao Início
+        </button>
+
+        <div class="barra-tempo-container">
+            <div id="barra-tempo" class="barra-tempo-progresso"></div>
+        </div>
+
+        <div id="contador-combo" class="contador-combo" aria-live="polite">Tokens: 3 | Combo: x1</div>
+        
+        <div class="card">
+            <p id="questao-numero" style="font-size: 1.2em; color: #888; margin-bottom: 15px;">Questão 1</p>
+            <div id="questao-texto" class="questao-texto">?</div>
+            
+            <div id="opcoes-resposta" class="opcoes-resposta">
             </div>
             
-            <div id="configuracoes-acessibilidade">
-                <h3>Configurações Visuais</h3>
-                <button id="toggle-contrast-button" class="button-secondary">
-                    Modo Alto Contraste: <span id="contrast-status">DESLIGADO</span>
-                </button>
-            </div>
-            
-            <section id="ranking-local">
-                <h3>Ranking de Maestria (Local)</h3>
-                
-                <div class="ranking-tabs">
-                    <button class="tab-button active" data-op="soma">Soma</button>
-                    <button class="tab-button" data-op="subtracao">Subtração</button>
-                    <button class="tab-button" data-op="multiplicacao">Multiplicação</button>
-                    <button class="tab-button" data-op="divisao">Divisão</button>
-                    <button class="tab-button" data-op="fracoes">Frações</button>
-                    <button class="tab-button" data-op="todas">Desafio</button>
-                </div>
+            <button id="btn-avancar" style="display: none; margin-top: 30px;" class="btn-principal" aria-label="Avançar para a próxima questão" tabindex="0">AVANÇAR (Enter/Espaço)</button>
+            <button id="btn-dica" style="margin-top: 15px;" class="btn-secundario" aria-label="Usar Feitiço da Regra">FEITIÇO DA REGRA (Tokens: 3)</button>
+        </div>
 
-                <table id="ranking-table">
+        <div id="feedback-mentor" class="feedback-box" aria-live="assertive">Aguardando sua resposta, Mago(a)!</div>
+    </div>
+    
+    <div id="tela-grimorio" class="container" style="display: none;">
+        <div class="card config-panel">
+            <h2>📜 Meu Grimório Mágico</h2>
+            <p class="grimorio-progress-text">
+                Progresso: Mago Nível <span id="grimorio-nivel">1</span> | XP: <span id="grimorio-xp-atual">0</span>/<span id="grimorio-xp-total">500</span>
+            </p>
+            <p style="margin-top: 10px;">Maior Combo: <span id="grimorio-max-combo">x1</span></p>
+
+            <h3 style="margin-top: 30px; border-bottom: 1px solid var(--cor-secundaria); padding-bottom: 5px;">Distribuição de Erros por Operação</h3>
+            
+            <div class="chart-container" style="margin: 20px auto; max-width: 400px;">
+                <canvas id="erros-chart"></canvas>
+            </div>
+            <p id="grimorio-sem-erros-chart" style="font-size: 0.9em; text-align: center; color: #888;">Nenhum erro registrado para análise gráfica.</p>
+            
+            <h3 style="margin-top: 30px; border-bottom: 1px solid var(--cor-secundaria); padding-bottom: 5px;">Erros Recentes (Foco de Estudo)</h3>
+            
+            <div id="grimorio-lista-erros">
+                <p id="grimorio-sem-erros">Nenhum erro registrado. Você é impecável!</p>
+                <table id="grimorio-tabela" style="display: none;">
                     <thead>
                         <tr>
-                            <th>#</th>
-                            <th>XP</th>
-                            <th>Acertos</th>
-                            <th>Combo Máx.</th>
-                            <th>Data</th>
+                            <th>Questão</th>
+                            <th>Operação</th>
+                            <th>Nível</th>
                         </tr>
                     </thead>
-                    <tbody id="ranking-table-body">
+                    <tbody>
                         </tbody>
                 </table>
-            </section>
-            
-            <button id="close-grimorio-button" class="button-primary">Fechar Grimório</button>
-        </section>
-        
+            </div>
+
+            <button id="btn-voltar-grimorio" class="btn-principal" style="margin-top: 40px;">VOLTAR PARA O MENU</button>
+        </div>
     </div>
-    <script src="app.js" defer></script>
+
+    <div id="tela-config" class="container" style="display: none;">
+        <div class="card config-panel">
+            <h2>Configurações Adicionais</h2>
+            
+            <div style="text-align: left; margin-top: 25px; line-height: 2.2em;">
+                
+                <label for="toggle-tema" style="font-size: 1.1em; display: block; margin-bottom: 10px;">Alternar Tema Claro/Escuro:</label>
+                <input type="checkbox" id="toggle-tema" role="switch" aria-label="Alternar para Tema Claro">
+                
+                <p style="margin-top: 20px; color: var(--cor-secundaria);">As demais configurações de acessibilidade estão disponíveis na tela inicial para acesso rápido.</p>
+                
+            </div>
+            
+            <button id="btn-voltar-config" class="btn-principal" style="margin-top: 40px;">VOLTAR PARA O MENU</button>
+        </div>
+    </div>
+    
+    <div id="modo-professor-container" class="container modo-professor-container" style="display: none;">
+        <div class="card">
+            <h2>🔒 Modo Professor Mago</h2>
+            <p style="font-size: 1.1em; color: #888; margin-bottom: 25px;">Ajuste as variáveis do jogo e dados dos alunos.</p>
+            
+            <div style="text-align: left; margin-bottom: 20px;">
+                <label for="xp-base-input" style="font-size: 1.1em; display: block; margin-bottom: 8px;">XP Base por Acerto (Padrão: 50):</label>
+                <input type="number" id="xp-base-input" value="50" min="10" style="width: 100%; padding: 12px; font-size: 1em; border-radius: 8px;">
+            </div>
+            
+            <div style="text-align: left; margin-bottom: 20px;">
+                <label for="combo-streak-input" style="font-size: 1.1em; display: block; margin-bottom: 8px;">Acertos para Novo Multiplicador Combo (Padrão: 3):</label>
+                <input type="number" id="combo-streak-input" value="3" min="1" style="width: 100%; padding: 12px; font-size: 1em; border-radius: 8px;">
+            </div>
+            
+            <h3>Ajuste Fino de Nível (Números Máximos)</h3>
+            <p style="font-size: 0.9em; color: #888; margin-bottom: 15px;">Defina os limites numéricos para os problemas de Adição/Subtração e Expoente Máximo.</p>
+            
+            <div id="range-settings" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                <div class="level-config-box">
+                    <label class="level-title level-facil">Nível FÁCIL</label>
+                    <input type="number" id="range-facil-max" min="1" value="10" placeholder="Max Número" style="margin-top: 5px; width: calc(100% - 10px);">
+                    <input type="number" id="range-facil-expo" min="2" value="2" placeholder="Max Expoente" style="margin-top: 5px; width: calc(100% - 10px);">
+                </div>
+                <div class="level-config-box">
+                    <label class="level-title level-medio">Nível MÉDIO</label>
+                    <input type="number" id="range-medio-max" min="10" value="50" placeholder="Max Número" style="margin-top: 5px; width: calc(100% - 10px);">
+                    <input type="number" id="range-medio-expo" min="3" value="3" placeholder="Max Expoente" style="margin-top: 5px; width: calc(100% - 10px);">
+                </div>
+                <div class="level-config-box">
+                    <label class="level-title level-avancado">Nível AVANÇADO</label>
+                    <input type="number" id="range-avancado-max" min="50" value="100" placeholder="Max Número" style="margin-top: 5px; width: calc(100% - 10px);">
+                    <input type="number" id="range-avancado-expo" min="4" value="4" placeholder="Max Expoente" style="margin-top: 5px; width: calc(100% - 10px);">
+                </div>
+            </div>
+            
+            <button id="btn-exportar-historico" class="btn-secundario" style="margin-top: 30px;">EXPORTAR HISTÓRICO (CSV)</button>
+            <button id="limpar-erros" class="btn-secundario" style="background-color: var(--cor-secundaria); color: white; margin-top: 20px;">LIMPAR APENAS HISTÓRICO DE ERROS</button>
+            <button id="limpar-historico" class="btn-principal" style="background-color: var(--cor-erro); margin-top: 15px; margin-bottom: 20px;">LIMPAR TUDO (PROGresso & Erros)</button>
+            <button id="btn-sair-professor" class="btn-principal">SALVAR E SAIR</button>
+        </div>
+    </div>
+
 </body>
 </html>

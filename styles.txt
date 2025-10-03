@@ -1,243 +1,315 @@
-/* =================== styles.css V. 24.10 =================== */
-
-/* --- VARIÁVEIS CSS E TEMAS (ACESSIBILIDADE) --- */
+/* === VARIÁVEIS GLOBAIS === */
 :root {
-    /* Tema Padrão (Mago) */
-    --cor-fundo-geral: #282c34;
-    --cor-container: rgba(255, 255, 255, 0.1); 
-    --cor-primaria: #1E90FF; /* Azul do Mago */
-    --cor-secundaria: #5c478c; /* Roxo */
-    --cor-destaque: #FFD700; /* Dourado */
-    --cor-acerto: #4CAF50;   /* Verde */
-    --cor-erro: #F44336;     /* Vermelho */
-    --cor-texto-principal: white;
-    --cor-texto-secundario: #ccc;
-    --fonte-principal: "Trebuchet MS", sans-serif;
-    --line-height: 1.4;
+    --cor-primaria: #9B59B6; /* Roxo Místico */
+    --cor-secundaria: #3498DB; /* Azul Elétrico */
+    --cor-acento: #E91E63; /* Pink Neon */
+    
+    --cor-fundo-escuro: #12121D; 
+    --cor-texto-escuro: #ECF0F1; 
+    --cor-fundo-card: #1A1A2E; 
+    
+    --cor-acerto: #2ECC71; 
+    --cor-erro: #E74C3C; 
+
+    --sombra-magica: 0px 0px 25px rgba(155, 89, 182, 0.5); 
+    --transicao-padrao: all 0.3s ease;
+    --font-scale: 1.0; 
 }
 
-.high-contrast {
-    /* Tema de Alto Contraste (Inclusivo) */
-    --cor-fundo-geral: #FFFFFF;
-    --cor-container: #F0F0F0; 
-    --cor-primaria: #000000; 
-    --cor-secundaria: #333333;
-    --cor-destaque: #0056b3; 
-    --cor-acerto: #008000;
-    --cor-erro: #CC0000;
-    --cor-texto-principal: #000000;
-    --cor-texto-secundario: #333333;
-    --fonte-principal: "Verdana", "Arial", sans-serif;
-    --line-height: 1.6;
-}
-
-/* --- ESTILOS GERAIS --- */
+/* === ESTILOS BASE === */
 body {
-    background-color: var(--cor-fundo-geral);
-    color: var(--cor-texto-principal);
-    font-family: var(--fonte-principal);
-    line-height: var(--line-height);
+    font-family: 'Poppins', sans-serif;
+    background-color: var(--cor-fundo-escuro);
+    color: var(--cor-texto-escuro);
+    transition: var(--transicao-padrao);
+    margin: 0;
+    padding: 0;
     display: flex;
-    justify-content: center;
+    flex-direction: column;
     align-items: center;
     min-height: 100vh;
-    padding: 20px;
-    transition: all 0.5s ease; /* Transição suave na troca de tema */
+    font-size: calc(1.1em * var(--font-scale)); 
 }
 
-#app-container {
-    background-color: var(--cor-fundo-geral);
-    padding: 20px;
-    border-radius: 12px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+/* Modo Dislexia */
+.modo-dislexia {
+    font-family: 'Open Dyslexic', cursive !important;
+    line-height: 1.8; 
+    letter-spacing: 1px; 
+}
+
+/* Tema Claro */
+.tema-claro {
+    background-color: #F8F9FA; 
+    color: #212529; 
+}
+.tema-claro .card, .tema-claro .config-panel {
+    background-color: white !important;
+    border: 1px solid #E9ECEF;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    color: #212529 !important;
+}
+.tema-claro .btn-secundario {
+    color: var(--cor-primaria);
+    border-color: var(--cor-primaria);
+}
+
+/* Alto Contraste */
+.modo-alto-contraste {
+    background-color: black !important;
+    color: white !important;
+}
+.modo-alto-contraste .card, .modo-alto-contraste .config-panel {
+    background-color: black !important;
+    color: yellow !important;
+    border: 3px solid yellow !important;
+    box-shadow: none !important;
+}
+.modo-alto-contraste button, .modo-alto-contraste select, .modo-alto-contraste input {
+    background-color: black !important;
+    color: yellow !important;
+    border: 2px solid white !important;
+}
+.modo-alto-contraste .btn-principal {
+    background-color: yellow !important;
+    color: black !important;
+    font-weight: bold;
+}
+.modo-alto-contraste .feedback-acerto {
+    background-color: lime !important;
+    color: black !important;
+}
+.modo-alto-contraste .feedback-erro {
+    background-color: red !important;
+    color: white !important;
+}
+.modo-alto-contraste .acessibilidade-bar button.ativo {
+    background-color: yellow !important;
+    color: black !important;
+    border-color: white !important;
+}
+
+/* === COMPONENTES DO LAYOUT === */
+.container {
+    width: 90%;
+    max-width: 650px;
+    padding: 20px 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.acessibilidade-bar {
     width: 100%;
-    max-width: 600px;
-    min-height: 600px;
     display: flex;
-    flex-direction: column;
-}
-
-/* --- HUD --- */
-#hud {
-    display: flex;
-    justify-content: space-between;
+    justify-content: flex-end;
     align-items: center;
-    padding-bottom: 15px;
-    margin-bottom: 20px;
-    border-bottom: 2px solid var(--cor-secundaria);
-}
-
-#player-info { font-weight: bold; font-size: 1.1em; }
-#xp-info span { margin-left: 10px; }
-
-/* --- BOTÕES E TELAS --- */
-.screen {
-    background-color: var(--cor-container);
-    padding: 20px;
-    border-radius: 8px;
-    margin-top: 20px;
-}
-
-.button-primary, .button-secondary {
-    padding: 10px 20px;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    font-weight: bold;
-    transition: opacity 0.2s, transform 0.1s;
-    margin-top: 10px;
-}
-
-.button-primary {
-    background-color: var(--cor-primaria);
-    color: var(--cor-texto-principal);
-}
-
-.button-secondary {
-    background-color: var(--cor-secundaria);
-    color: var(--cor-texto-principal);
-}
-
-.button-primary:hover, .button-secondary:hover {
-    opacity: 0.9;
-}
-
-/* --- TELA DE JOGO --- */
-#game-screen {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-    flex-grow: 1;
-}
-
-.big-text {
-    font-size: 3em;
-    margin: 30px 0;
-}
-
-#answer-input {
-    padding: 12px;
-    font-size: 1.5em;
-    text-align: center;
-    width: 80%;
-    max-width: 250px;
-    border: 2px solid var(--cor-secundaria);
-    border-radius: 6px;
-    background-color: var(--cor-container);
-    color: var(--cor-texto-principal);
-    margin: 20px 0;
-}
-
-.feedback-text {
-    font-weight: bold;
-    font-size: 1.2em;
-    height: 30px; /* Mantém o espaço para evitar pulo de layout */
-}
-
-/* --- RANKING (GRIMÓRIO) --- */
-#ranking-local {
-    margin-top: 30px;
-    padding-top: 20px;
-    border-top: 1px solid var(--cor-secundaria);
-}
-
-.ranking-tabs {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
+    padding: 15px;
     gap: 10px;
-    margin-bottom: 20px;
 }
-
-.tab-button {
-    background-color: var(--cor-secundaria);
-    color: var(--cor-texto-principal);
-    border: none;
-    padding: 8px 15px;
-    border-radius: 5px;
+.acessibilidade-bar button {
+    background-color: var(--cor-fundo-card);
+    border: 2px solid var(--cor-primaria);
+    color: var(--cor-primaria);
+    font-size: calc(1.5em * var(--font-scale));
+    width: calc(45px * var(--font-scale));
+    height: calc(45px * var(--font-scale));
+    border-radius: 50%;
     cursor: pointer;
+    transition: var(--transicao-padrao);
+}
+.acessibilidade-bar button.ativo {
+    background-color: var(--cor-acento);
+    color: white;
+    border-color: var(--cor-acento);
 }
 
-.tab-button.active {
+.header {
+    width: 100%;
+    text-align: center;
+    padding: calc(30px * var(--font-scale)) 0;
+    cursor: default; 
+}
+.header h1 {
+    font-size: calc(3.5em * var(--font-scale));
+    color: var(--cor-acento);
+    text-shadow: 0 0 20px var(--cor-acento), 0 0 5px rgba(255, 255, 255, 0.5);
+    margin: 0;
+    letter-spacing: 3px;
+}
+.card, .config-panel {
+    background-color: var(--cor-fundo-card);
+    color: var(--cor-texto-escuro);
+    box-shadow: var(--sombra-magica);
+    border: 1px solid var(--cor-primaria);
+    padding: calc(35px * var(--font-scale));
+    border-radius: 20px;
+    margin-bottom: calc(25px * var(--font-scale));
+    width: 100%;
+    box-sizing: border-box;
+}
+
+/* === BOTOES E INTERAÇÃO === */
+.btn-principal {
+     background-color: var(--cor-acento);
+     color: white;
+     border: none;
+     padding: calc(18px * var(--font-scale)) calc(25px * var(--font-scale));
+     font-size: calc(1.3em * var(--font-scale));
+     border-radius: 12px;
+     cursor: pointer;
+     transition: var(--transicao-padrao);
+     font-weight: bold;
+     letter-spacing: 1px;
+}
+.btn-secundario {
+    background-color: transparent;
+    color: var(--cor-secundaria);
+    border: 2px solid var(--cor-secundaria);
+    padding: calc(12px * var(--font-scale)) calc(20px * var(--font-scale));
+    font-size: calc(1.1em * var(--font-scale));
+    border-radius: 10px;
+    cursor: pointer;
+    transition: var(--transicao-padrao);
+}
+.btn-secundario:hover:not(:disabled), .btn-principal:hover:not(:disabled) {
+    opacity: 0.8;
+}
+.opcoes-resposta button {
+    width: 100%;
+    padding: calc(15px * var(--font-scale));
+    margin-bottom: 12px;
+    font-size: calc(1.5em * var(--font-scale));
+    border-radius: 8px;
+    cursor: pointer;
+    background-color: var(--cor-fundo-escuro);
+    color: var(--cor-texto-escuro);
+    border: 2px solid var(--cor-secundaria);
+    transition: var(--transicao-padrao);
+}
+
+.opcoes-resposta button.feedback-acerto {
+    background-color: var(--cor-acerto);
+    color: white;
+    border-color: var(--cor-acerto);
+    /* NOVO: Animação de acerto */
+    animation: acerto-animacao 0.3s ease-out;
+}
+.opcoes-resposta button.feedback-erro {
+    background-color: var(--cor-erro);
+    color: white;
+    border-color: var(--cor-erro);
+}
+.opcoes-resposta button.resposta-correta {
+    border: 3px solid var(--cor-acerto);
+    box-shadow: 0 0 15px var(--cor-acerto);
+}
+
+/* NOVO: Animação de Acerto */
+@keyframes acerto-animacao {
+    0% { transform: scale(1); box-shadow: 0 0 0 rgba(46, 204, 113, 0); }
+    50% { transform: scale(1.05); box-shadow: 0 0 20px var(--cor-acerto); }
+    100% { transform: scale(1); box-shadow: 0 0 0 rgba(46, 204, 113, 0); }
+}
+
+/* === DISPLAY DE INFORMAÇÕES === */
+#display-level {
+    margin-top: 15px;
+    font-size: calc(1.3em * var(--font-scale));
+    color: var(--cor-primaria);
+    font-weight: bold;
+    text-shadow: 0 0 10px rgba(155, 89, 182, 0.7);
+}
+
+/* NOVO: Barra de XP (Progressão Visual) */
+.xp-barra-container {
+    width: 90%;
+    max-width: 450px;
+    height: 15px;
+    background-color: var(--cor-fundo-card);
+    border-radius: 8px;
+    margin-top: 10px;
+    overflow: hidden;
+    border: 1px solid var(--cor-secundaria);
+}
+.xp-barra-progresso {
+    height: 100%;
+    width: 0%;
+    background-color: var(--cor-acento);
+    transition: width 0.5s ease-out;
+}
+
+/* Barra de Tempo (Mantida) */
+.barra-tempo-container {
+    width: 100%;
+    height: 10px;
+    background-color: var(--cor-fundo-card);
+    border-radius: 5px;
+    margin-bottom: 20px;
+    overflow: hidden;
+}
+.barra-tempo-progresso {
+    height: 100%;
+    width: 100%;
     background-color: var(--cor-primaria);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
 }
 
-#ranking-table {
+/* Feedback Mentor (Mantido) */
+.feedback-box {
+    text-align: center;
+    padding: 15px 20px;
+    margin-top: 20px;
+    border-radius: 8px;
+    font-weight: bold;
+}
+.feedback-acerto {
+    background-color: var(--cor-acerto);
+    color: white;
+}
+.feedback-erro {
+    background-color: var(--cor-erro);
+    color: white;
+}
+.feedback-box.dica {
+    background-color: var(--cor-secundaria);
+    color: white;
+}
+
+/* === ESTILOS GRIMÓRIO (RELATÓRIO) === */
+#grimorio-tabela {
     width: 100%;
     border-collapse: collapse;
-    background-color: var(--cor-container);
-    border-radius: 8px;
-    overflow: hidden;
-    color: var(--cor-texto-principal);
+    margin-top: 20px;
 }
-
-#ranking-table thead th {
-    background-color: var(--cor-primaria);
-    color: var(--cor-texto-principal);
+#grimorio-tabela th, #grimorio-tabela td {
+    border: 1px solid var(--cor-secundaria);
     padding: 10px;
     text-align: left;
-    font-size: 0.9em;
+    font-size: calc(0.9em * var(--font-scale));
+}
+#grimorio-lista-erros {
+    max-height: 300px; 
+    overflow-y: auto;
+    scrollbar-color: var(--cor-primaria) var(--cor-fundo-card);
+}
+.grimorio-progress-text {
+    color: var(--cor-acento); 
+    font-weight: bold; 
+    font-size: 1.1em; 
+    margin-top: 15px;
 }
 
-#ranking-table tbody td {
-    padding: 10px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+/* === ESTILOS MODO PROFESSOR === */
+.level-config-box {
+    border: 1px solid #3498DB; 
+    padding: 10px; 
+    border-radius: 5px;
 }
-
-#ranking-table tbody tr:nth-child(even) {
-    background-color: rgba(0, 0, 0, 0.1);
+.level-title {
+    font-weight: bold; 
+    display: block;
+    margin-bottom: 5px;
 }
-
-/* --- FRAÇÕES (UX/UI) --- */
-.fracao-container {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    font-size: 2.5em; 
-    font-weight: bold;
-    margin: 30px 0;
-}
-
-.fracao {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    line-height: 1;
-}
-
-.barra {
-    width: 100%;
-    height: 3px; 
-    background-color: var(--cor-texto-principal);
-    margin: 2px 0;
-}
-
-.numerador, .denominador {
-    padding: 0 5px;
-}
-
-.hidden {
-    display: none !important;
-}
-
-/* --- FEEDBACK VISUAL (NOVO RECORDE) --- */
-.new-record-animation {
-    font-size: 1.8em;
-    font-weight: 900;
-    color: var(--cor-destaque); 
-    text-shadow: 0 0 10px var(--cor-destaque), 0 0 20px rgba(255, 215, 0, 0.6);
-    padding: 10px 20px;
-    border: 3px solid var(--cor-destaque);
-    border-radius: 10px;
-    margin: 20px auto;
-    width: fit-content;
-    animation: flash-record 1.5s infinite alternate;
-}
-
-@keyframes flash-record {
-    from { opacity: 1; transform: scale(1); }
-    to { opacity: 0.8; transform: scale(1.05); }
-}
+.level-facil { color: var(--cor-acerto); }
+.level-medio { color: var(--cor-secundaria); }
+.level-avancado { color: var(--cor-acento); }
