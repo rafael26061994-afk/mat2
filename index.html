@@ -3,17 +3,201 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Matemágica - A Jornada da Fluência (V. 24.8)</title>
+    <title>Matemágica - A Jornada da Fluência (V. 24.7)</title>
     
-    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" defer></script>
     
     <link href="https://fonts.googleapis.com/css2?family=Open+Dyslexic:wght@400;700&display=swap" rel="stylesheet">
     
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
-    
     <script src="https://vlibras.gov.br/app/vlibras-plugin.js"></script>
     
-    <script type="module" src="app.js" defer></script>
+    <style>
+        /* === ESTILOS GLOBAIS E CRÍTICOS (CSS CRÍTICO) === */
+        :root {
+            --cor-primaria: #9B59B6; /* Roxo Místico */
+            --cor-secundaria: #3498DB; /* Azul Elétrico */
+            --cor-acento: #E91E63; /* Pink Neon */
+            
+            --cor-fundo-escuro: #12121D; 
+            --cor-texto-escuro: #ECF0F1; 
+            --cor-fundo-card: #1A1A2E; 
+            
+            --cor-acerto: #2ECC71; 
+            --cor-erro: #E74C3C; 
+
+            --sombra-magica: 0px 0px 25px rgba(155, 89, 182, 0.5); 
+            --transicao-padrao: all 0.3s ease;
+            --font-scale: 1.0; 
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--cor-fundo-escuro);
+            color: var(--cor-texto-escuro);
+            transition: var(--transicao-padrao);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            font-size: calc(1.1em * var(--font-scale)); 
+        }
+        
+        /* NOVO MODO: ALTO CONTRASTE */
+        .modo-alto-contraste {
+            background-color: black !important;
+            color: white !important;
+        }
+        .modo-alto-contraste .card, .modo-alto-contraste .config-panel {
+            background-color: black !important;
+            color: yellow !important;
+            border: 3px solid yellow !important;
+            box-shadow: none !important;
+        }
+        .modo-alto-contraste button, .modo-alto-contraste select, .modo-alto-contraste input {
+            background-color: black !important;
+            color: yellow !important;
+            border: 2px solid white !important;
+        }
+        .modo-alto-contraste .btn-principal {
+            background-color: yellow !important;
+            color: black !important;
+            font-weight: bold;
+        }
+        .modo-alto-contraste .feedback-acerto {
+            background-color: lime !important;
+            color: black !important;
+        }
+        .modo-alto-contraste .feedback-erro {
+            background-color: red !important;
+            color: white !important;
+        }
+        .modo-alto-contraste .acessibilidade-bar button.ativo {
+            background-color: yellow !important;
+            color: black !important;
+            border-color: white !important;
+        }
+
+
+        .modo-dislexia {
+            font-family: 'Open Dyslexic', cursive !important;
+            line-height: 1.8; 
+            letter-spacing: 1px; 
+        }
+
+        /* --- DISPLAY DE NÍVEL NA TELA INICIAL --- */
+        #display-level {
+            margin-top: 15px;
+            font-size: calc(1.3em * var(--font-scale));
+            color: var(--cor-primaria);
+            font-weight: bold;
+            text-shadow: 0 0 10px rgba(155, 89, 182, 0.7);
+        }
+
+        /* --- ESTILOS DE TABELA PARA O GRIMÓRIO --- */
+        #grimorio-tabela {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        #grimorio-tabela th, #grimorio-tabela td {
+            border: 1px solid var(--cor-secundaria);
+            padding: 10px;
+            text-align: left;
+            font-size: calc(0.9em * var(--font-scale));
+        }
+        #grimorio-lista-erros {
+            max-height: 300px; 
+            overflow-y: auto;
+            /* Adiciona barra de rolagem estilizada se necessário */
+            scrollbar-color: var(--cor-primaria) var(--cor-fundo-card);
+        }
+        
+        /* --- ESTILOS PADRÃO (MANTIDOS) --- */
+        .acessibilidade-bar {
+            width: 100%;
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            padding: 15px;
+            gap: 10px;
+        }
+        .acessibilidade-bar button {
+            background-color: var(--cor-fundo-card);
+            border: 2px solid var(--cor-primaria);
+            color: var(--cor-primaria);
+            font-size: calc(1.5em * var(--font-scale));
+            width: calc(45px * var(--font-scale));
+            height: calc(45px * var(--font-scale));
+            border-radius: 50%;
+            cursor: pointer;
+            transition: var(--transicao-padrao);
+        }
+        .acessibilidade-bar button.ativo {
+            background-color: var(--cor-acento);
+            color: white;
+            border-color: var(--cor-acento);
+        }
+
+        .header {
+            width: 100%;
+            text-align: center;
+            padding: calc(30px * var(--font-scale)) 0;
+            cursor: default; 
+        }
+        .header h1 {
+            font-size: calc(3.5em * var(--font-scale));
+            color: var(--cor-acento);
+            text-shadow: 0 0 20px var(--cor-acento), 0 0 5px rgba(255, 255, 255, 0.5);
+            margin: 0;
+            letter-spacing: 3px;
+        }
+        
+        .card, .config-panel {
+            background-color: var(--cor-fundo-card) !important;
+            color: var(--cor-texto-escuro) !important;
+            box-shadow: var(--sombra-magica) !important;
+            border: 1px solid var(--cor-primaria);
+            padding: calc(35px * var(--font-scale));
+            border-radius: 20px;
+            margin-bottom: calc(25px * var(--font-scale));
+        }
+        .btn-principal {
+             background-color: var(--cor-acento);
+             color: white !important;
+             border: none;
+             padding: calc(18px * var(--font-scale)) calc(25px * var(--font-scale));
+             font-size: calc(1.3em * var(--font-scale));
+             border-radius: 12px;
+             cursor: pointer;
+             transition: var(--transicao-padrao);
+             font-weight: bold;
+             letter-spacing: 1px;
+        }
+        .btn-secundario {
+            background-color: transparent;
+            color: var(--cor-secundaria);
+            border: 2px solid var(--cor-secundaria);
+            padding: calc(12px * var(--font-scale)) calc(20px * var(--font-scale));
+            font-size: calc(1.1em * var(--font-scale));
+            border-radius: 10px;
+            cursor: pointer;
+            transition: var(--transicao-padrao);
+        }
+        #btn-modo-professor {
+            margin-top: 30px;
+            font-size: 0.9em;
+            color: #888;
+            cursor: pointer;
+            text-decoration: underline;
+            transition: color 0.3s;
+        }
+        #btn-modo-professor:hover {
+            color: var(--cor-acento);
+        }
+
+    </style>
 </head>
 <body class="tema-escuro">
     
@@ -27,13 +211,27 @@
     <div id="tela-inicial" class="container"> 
         
         <div class="acessibilidade-bar">
-            <button id="btn-toggle-contraste" aria-label="Ativar Alto Contraste">🌗</button>
-            <button id="btn-toggle-libras" aria-label="Ativar VLibras">🤟</button>
-            <button id="btn-toggle-tts" aria-label="Ativar Leitura em Voz (TTS)">🗣️</button>
-            <button id="btn-toggle-dislexia" aria-label="Ativar Modo Dislexia">🔤</button>
+            
+            <button id="btn-toggle-contraste" aria-label="Ativar Alto Contraste">
+                🌗
+            </button>
+
+            <button id="btn-toggle-libras" aria-label="Ativar VLibras">
+                <span style="font-size: 1.1em;">🤟</span>
+            </button>
+            
+            <button id="btn-toggle-tts" aria-label="Ativar Leitura em Voz (TTS)">
+                🗣️
+            </button>
+            
+            <button id="btn-toggle-dislexia" aria-label="Ativar Modo Dislexia">
+                🔤
+            </button>
+
             <button id="btn-zoom-out" aria-label="Diminuir Zoom" style="font-weight: bold; font-size: 1.2em;">-</button>
             <span id="current-zoom" style="font-size: 1em;">100%</span>
             <button id="btn-zoom-in" aria-label="Aumentar Zoom" style="font-weight: bold; font-size: 1.2em;">+</button>
+            
             <button id="btn-config" aria-label="Abrir Configurações">⚙️</button>
         </div>
         
@@ -42,10 +240,6 @@
             <p>A Jornada da Fluência Matemática</p>
             
             <div id="display-level" aria-live="polite">Mago Nível 1 | XP: 0/500</div>
-            
-            <div class="xp-barra-container">
-                <div id="xp-barra-progresso" class="xp-barra-progresso"></div>
-            </div>
         </header>
 
         <div class="card">
@@ -101,9 +295,9 @@
             <div id="questao-texto" class="questao-texto">?</div>
             
             <div id="opcoes-resposta" class="opcoes-resposta">
-            </div>
+                </div>
             
-            <button id="btn-avancar" style="display: none; margin-top: 30px;" class="btn-principal" aria-label="Avançar para a próxima questão" tabindex="0">AVANÇAR (Enter/Espaço)</button>
+            <button id="btn-avancar" style="display: none; margin-top: 30px;" class="btn-principal" aria-label="Avançar para a próxima questão">AVANÇAR (Enter/Espaço)</button>
             <button id="btn-dica" style="margin-top: 15px;" class="btn-secundario" aria-label="Usar Feitiço da Regra">FEITIÇO DA REGRA (Tokens: 3)</button>
         </div>
 
@@ -113,18 +307,11 @@
     <div id="tela-grimorio" class="container" style="display: none;">
         <div class="card config-panel">
             <h2>📜 Meu Grimório Mágico</h2>
-            <p class="grimorio-progress-text">
+            <p style="color: var(--cor-acento); font-weight: bold; font-size: 1.1em; margin-top: 15px;">
                 Progresso: Mago Nível <span id="grimorio-nivel">1</span> | XP: <span id="grimorio-xp-atual">0</span>/<span id="grimorio-xp-total">500</span>
             </p>
             <p style="margin-top: 10px;">Maior Combo: <span id="grimorio-max-combo">x1</span></p>
 
-            <h3 style="margin-top: 30px; border-bottom: 1px solid var(--cor-secundaria); padding-bottom: 5px;">Distribuição de Erros por Operação</h3>
-            
-            <div class="chart-container" style="margin: 20px auto; max-width: 400px;">
-                <canvas id="erros-chart"></canvas>
-            </div>
-            <p id="grimorio-sem-erros-chart" style="font-size: 0.9em; text-align: center; color: #888;">Nenhum erro registrado para análise gráfica.</p>
-            
             <h3 style="margin-top: 30px; border-bottom: 1px solid var(--cor-secundaria); padding-bottom: 5px;">Erros Recentes (Foco de Estudo)</h3>
             
             <div id="grimorio-lista-erros">
@@ -173,38 +360,740 @@
                 <input type="number" id="xp-base-input" value="50" min="10" style="width: 100%; padding: 12px; font-size: 1em; border-radius: 8px;">
             </div>
             
-            <div style="text-align: left; margin-bottom: 20px;">
-                <label for="combo-streak-input" style="font-size: 1.1em; display: block; margin-bottom: 8px;">Acertos para Novo Multiplicador Combo (Padrão: 3):</label>
-                <input type="number" id="combo-streak-input" value="3" min="1" style="width: 100%; padding: 12px; font-size: 1em; border-radius: 8px;">
-            </div>
-            
-            <h3>Ajuste Fino de Nível (Números Máximos)</h3>
-            <p style="font-size: 0.9em; color: #888; margin-bottom: 15px;">Defina os limites numéricos para os problemas de Adição/Subtração e Expoente Máximo.</p>
+            <h3 style="margin-top: 30px;">Ajuste Fino de Nível (Números Máximos)</h3>
+            <p style="font-size: 0.9em; color: #888; margin-bottom: 15px;">Defina o número máximo (numMax1) para Adição/Subtração e o Expoente Máximo para Potenciação em cada nível.</p>
             
             <div id="range-settings" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
-                <div class="level-config-box">
-                    <label class="level-title level-facil">Nível FÁCIL</label>
+                <div style="border: 1px solid #3498DB; padding: 10px; border-radius: 5px;">
+                    <label style="font-weight: bold; color: var(--cor-acerto);">Nível FÁCIL</label>
                     <input type="number" id="range-facil-max" min="1" value="10" placeholder="Max Número" style="margin-top: 5px; width: calc(100% - 10px);">
                     <input type="number" id="range-facil-expo" min="2" value="2" placeholder="Max Expoente" style="margin-top: 5px; width: calc(100% - 10px);">
                 </div>
-                <div class="level-config-box">
-                    <label class="level-title level-medio">Nível MÉDIO</label>
+                <div style="border: 1px solid #3498DB; padding: 10px; border-radius: 5px;">
+                    <label style="font-weight: bold; color: var(--cor-acerto);">Nível MÉDIO</label>
                     <input type="number" id="range-medio-max" min="10" value="50" placeholder="Max Número" style="margin-top: 5px; width: calc(100% - 10px);">
                     <input type="number" id="range-medio-expo" min="3" value="3" placeholder="Max Expoente" style="margin-top: 5px; width: calc(100% - 10px);">
                 </div>
-                <div class="level-config-box">
-                    <label class="level-title level-avancado">Nível AVANÇADO</label>
+                <div style="border: 1px solid #3498DB; padding: 10px; border-radius: 5px;">
+                    <label style="font-weight: bold; color: var(--cor-acento);">Nível AVANÇADO</label>
                     <input type="number" id="range-avancado-max" min="50" value="100" placeholder="Max Número" style="margin-top: 5px; width: calc(100% - 10px);">
                     <input type="number" id="range-avancado-expo" min="4" value="4" placeholder="Max Expoente" style="margin-top: 5px; width: calc(100% - 10px);">
                 </div>
             </div>
             
             <button id="btn-exportar-historico" class="btn-secundario" style="margin-top: 30px;">EXPORTAR HISTÓRICO (CSV)</button>
-            <button id="limpar-erros" class="btn-secundario" style="background-color: var(--cor-secundaria); color: white; margin-top: 20px;">LIMPAR APENAS HISTÓRICO DE ERROS</button>
-            <button id="limpar-historico" class="btn-principal" style="background-color: var(--cor-erro); margin-top: 15px; margin-bottom: 20px;">LIMPAR TUDO (PROGresso & Erros)</button>
+            <button id="limpar-historico" class="btn-principal" style="background-color: var(--cor-erro); margin-top: 20px; margin-bottom: 20px;">LIMPAR HISTÓRICO DE ALUNOS</button>
             <button id="btn-sair-professor" class="btn-principal">SALVAR E SAIR</button>
         </div>
     </div>
 
+    <script type="module">
+        // ==========================================================
+        // === MÓDULO DE DADOS E CONTEÚDO (CONTEUDO_MATEMAGICA) ===
+        // ==========================================================
+        
+        const MENSAGENS = {
+            elogios: [
+                "Fantástico! Você é um Mago da Fluência!",
+                "Incrível! Esse é o poder de um verdadeiro Aluno Mago!",
+                "Excelente! Não se distraia, mantenha o foco!",
+                "Uau! Sua concentração está no nível máximo!",
+                "Parabéns! Mantenha a sequência de acertos!"
+            ],
+            incentivos: [
+                "Não desista! Use o erro para fortalecer sua magia!",
+                "Um pequeno deslize, mas a próxima será perfeita!",
+                "Tudo bem errar. Lembre-se da regra e avance!",
+                "Sua jornada continua! Inspire, expire e tente novamente.",
+                "O erro é um portal para o aprendizado. Volte mais forte!"
+            ],
+            
+            getRandomElogio: function() {
+                return this.elogios[Math.floor(Math.random() * this.elogios.length)];
+            },
+            getRandomIncentivo: function() {
+                return this.incentivos[Math.floor(Math.random() * this.incentivos.length)];
+            }
+        };
+
+        const CONTEUDO = {
+            // FUNÇÃO ATUALIZADA PARA USAR RANGES DINÂMICOS
+            gerarQuestao(operacao, nivel) {
+                const ranges = STATE.levelRanges[nivel] || STATE.levelRanges.facil;
+                let numMax1 = ranges.max1;
+                let expoMax = ranges.expo;
+
+                let num1, num2, resultado, pergunta, tipo;
+
+                if (operacao === 'adicao') {
+                    tipo = 'adicao'; num1 = Math.floor(Math.random() * numMax1) + 1; num2 = Math.floor(Math.random() * numMax1) + 1; resultado = num1 + num2; pergunta = `${num1} + ${num2}`;
+                } else if (operacao === 'subtracao') {
+                    tipo = 'subtracao'; num1 = Math.floor(Math.random() * numMax1) + 1; num2 = Math.floor(Math.random() * numMax1) + 1; if (num1 < num2) [num1, num2] = [num2, num1]; resultado = num1 - num2; pergunta = `${num1} - ${num2}`;
+                } else if (operacao === 'multiplicacao') {
+                    // Ajuste para Multiplicação: Fatores menores para evitar overflow, baseados no max1 do nível
+                    tipo = 'multiplicacao'; 
+                    let fatorMax = Math.min(20, Math.floor(numMax1 / 5) + 5); 
+                    num1 = Math.floor(Math.random() * (fatorMax + 1)); num2 = Math.floor(Math.random() * (fatorMax + 1)); resultado = num1 * num2; pergunta = `${num1} × ${num2}`;
+                } else if (operacao === 'divisao') {
+                    tipo = 'divisao'; 
+                    let divisorMax = Math.min(15, Math.floor(numMax1 / 10) + 3); 
+                    num2 = Math.floor(Math.random() * divisorMax) + 1; resultado = Math.floor(Math.random() * divisorMax) + 1; num1 = resultado * num2; pergunta = `${num1} ÷ ${num2}`;
+                } else if (operacao === 'potenciacao') {
+                    tipo = 'potenciacao'; 
+                    let baseMax = Math.min(10, Math.floor(numMax1 / 10) + 2); 
+                    num1 = Math.floor(Math.random() * baseMax) + 1; num2 = Math.floor(Math.random() * expoMax) + 2; resultado = Math.pow(num1, num2); pergunta = `${num1} ^ ${num2}`;
+                } else { 
+                    tipo = 'radiciacao'; 
+                    let raizMax = Math.min(15, Math.floor(numMax1 / 10) + 3); 
+                    resultado = Math.floor(Math.random() * raizMax) + 1; num1 = resultado * resultado; pergunta = `√${num1}`;
+                }
+                
+                const opcoes = new Set(); opcoes.add(resultado);
+                const desvioMax = nivel === 'facil' ? 5 : 10;
+                while (opcoes.size < 4) {
+                    let desvio = Math.floor(Math.random() * desvioMax) + 1;
+                    let sinal = Math.random() < 0.5 ? 1 : -1;
+                    let falsa = resultado + (desvio * sinal);
+                    if ((tipo === 'divisao' || tipo === 'radiciacao' || tipo === 'subtracao') && falsa < 0) {
+                        falsa = Math.abs(resultado - desvio);
+                    }
+                    if (falsa !== resultado) opcoes.add(falsa);
+                }
+                
+                const opcoesArray = Array.from(opcoes).sort(() => Math.random() - 0.5);
+
+                return {
+                    pergunta: pergunta + ' = ?',
+                    resposta: resultado,
+                    opcoes: opcoesArray,
+                    tipo: tipo,
+                    nivel: nivel,
+                    dica: CONTEUDO.gerarDica(tipo, nivel)
+                };
+            },
+            
+            gerarDica(tipo, nivel) {
+                if (nivel === 'avancado') {
+                    if (tipo.includes('multiplicacao')) return "Rafael: Lembre-se da propriedade distributiva para números grandes!";
+                    if (tipo.includes('divisao')) return "Ronaldo: Use o critério de divisibilidade ou simplifique a fração.";
+                    if (tipo.includes('adicao')) return "Rafael: Agrupe os números para simplificar o cálculo mental.";
+                    if (tipo.includes('potenciacao')) return "Ronaldo: Potência de potência, multiplique os expoentes. Caso contrário, repita a base!";
+                    if (tipo.includes('radiciacao')) return "Ronaldo: Radiciação é a operação inversa da potenciação. Pense: 'Qual número...?'";
+                    if (tipo.includes('subtracao')) return "Rafael: Use o método de compensação: some o mesmo número a ambos para simplificar a conta!";
+                    return "Ronaldo: Calcule passo a passo. Respire fundo!";
+                }
+                return "Ronaldo: Calcule passo a passo, começando da direita para a esquerda. Respire fundo!";
+            }
+        };
+
+        // ===============================================
+        // === VARIÁVEIS DE ESTADO E REFERÊNCIAS DOM ===
+        // ===============================================
+        const STATE = {
+            xpBase: 50,
+            xpAtual: 0,
+            playerLevel: 1, 
+            xpForNextLevel: 500, 
+            maxCombo: 1, 
+            lastOperation: null, 
+            tokens: 3, 
+            combo: 1,
+            modo: 'rapido',
+            operacao: null, 
+            nivel: 'facil',
+            ttsAtivo: true,
+            librasAtivo: true,
+            dislexiaAtiva: false, 
+            isHighContrast: false, 
+            fontSizeScale: 1.0, 
+            historicoErros: [],
+            questaoAtual: null,
+            timer: null,
+            tempoInicial: 10,
+            tempoRestante: 10,
+            acertosConsecutivos: 0,
+            professorModeAtivo: false,
+            temaAtual: 'tema-escuro', 
+            levelRanges: {
+                facil: { max1: 10, expo: 2 },
+                medio: { max1: 50, expo: 3 },
+                avancado: { max1: 100, expo: 4 }
+            },
+        };
+        
+        const DOM = {
+            // Telas
+            telaInicial: document.getElementById('tela-inicial'),
+            telaJogo: document.getElementById('tela-jogo'),
+            telaConfig: document.getElementById('tela-config'),
+            telaGrimorio: document.getElementById('tela-grimorio'),
+            professorModeContainer: document.getElementById('modo-professor-container'),
+            
+            // Inicial
+            logo: document.getElementById('app-logo'),
+            displayLevel: document.getElementById('display-level'),
+            botoesOperacao: document.querySelectorAll('.opcoes-container button[data-operacao]'),
+            btnIniciar: document.getElementById('btn-iniciar'),
+            selectNivel: document.getElementById('select-nivel'),
+            btnModoRapido: document.getElementById('modo-rapido'),
+            btnModoNormal: document.getElementById('modo-normal'),
+            btnGrimorio: document.getElementById('btn-grimorio'),
+            
+            // Jogo
+            barraTempo: document.getElementById('barra-tempo'),
+            contadorCombo: document.getElementById('contador-combo'),
+            questaoNumero: document.getElementById('questao-numero'),
+            questaoTexto: document.getElementById('questao-texto'),
+            opcoesResposta: document.getElementById('opcoes-resposta'),
+            feedbackMentor: document.getElementById('feedback-mentor'),
+            btnAvancar: document.getElementById('btn-avancar'),
+            btnDica: document.getElementById('btn-dica'),
+            
+            // Acessibilidade/Config
+            btnToggleLibras: document.getElementById('btn-toggle-libras'),
+            btnToggleTts: document.getElementById('btn-toggle-tts'),
+            btnToggleDislexia: document.getElementById('btn-toggle-dislexia'),
+            btnToggleHighContrast: document.getElementById('btn-toggle-contraste'),
+            btnZoomIn: document.getElementById('btn-zoom-in'),
+            btnZoomOut: document.getElementById('btn-zoom-out'),
+            currentZoom: document.getElementById('current-zoom'),
+            toggleTema: document.getElementById('toggle-tema'),
+            
+            // Professor Mode
+            btnModoProfessor: document.getElementById('btn-modo-professor'),
+            btnSairProfessor: document.getElementById('btn-sair-professor'),
+            limparHistorico: document.getElementById('limpar-historico'),
+            xpBaseInput: document.getElementById('xp-base-input'),
+            btnExportarHistorico: document.getElementById('btn-exportar-historico'),
+            
+            rangeFacilMax: document.getElementById('range-facil-max'),
+            rangeFacilExpo: document.getElementById('range-facil-expo'),
+            rangeMedioMax: document.getElementById('range-medio-max'),
+            rangeMedioExpo: document.getElementById('range-medio-expo'),
+            rangeAvancadoMax: document.getElementById('range-avancado-max'),
+            rangeAvancadoExpo: document.getElementById('range-avancado-expo'),
+            
+            // Grimório
+            grimorioNivel: document.getElementById('grimorio-nivel'),
+            grimorioXpAtual: document.getElementById('grimorio-xp-atual'),
+            grimorioXpTotal: document.getElementById('grimorio-xp-total'),
+            grimorioMaxCombo: document.getElementById('grimorio-max-combo'),
+            grimorioListaErros: document.getElementById('grimorio-lista-erros'),
+            grimorioSemErros: document.getElementById('grimorio-sem-erros'),
+            grimorioTabela: document.getElementById('grimorio-tabela'),
+            grimorioTbody: document.querySelector('#grimorio-tabela tbody'),
+        };
+
+        // ===============================================
+        // === MÓDULO DE ACESSIBILIDADE E UI (UX/UI) ===
+        // ===============================================
+
+        const UI = {
+            navegar(telaId) {
+                clearInterval(STATE.timer); 
+                
+                DOM.telaInicial.style.display = 'none';
+                DOM.telaJogo.style.display = 'none';
+                DOM.telaConfig.style.display = 'none';
+                DOM.professorModeContainer.style.display = 'none';
+                DOM.telaGrimorio.style.display = 'none';
+
+                if (telaId === 'inicial') {
+                    DOM.telaInicial.style.display = 'block';
+                    UI.atualizarDisplayNivel(); // Atualiza XP/Nível ao voltar
+                }
+                else if (telaId === 'jogo') DOM.telaJogo.style.display = 'block';
+                else if (telaId === 'config') DOM.telaConfig.style.display = 'block';
+                else if (telaId === 'professor') LOGICA.entrarProfessorMode();
+                else if (telaId === 'grimorio') UI.mostrarGrimorio();
+            },
+
+            aplicarTema(tema) {
+                STATE.temaAtual = tema;
+                document.body.classList.remove('tema-claro', 'tema-escuro');
+                document.body.classList.add(tema);
+                DOM.toggleTema.checked = tema === 'tema-claro'; 
+            },
+            
+            aplicarLibras(ativo) {
+                STATE.librasAtivo = ativo;
+                const vlibrasDiv = document.querySelector('div[vw]');
+                if (vlibrasDiv) {
+                    vlibrasDiv.classList.toggle('enabled', ativo);
+                }
+                DOM.btnToggleLibras.classList.toggle('ativo', ativo);
+                LOGICA.salvarEstado();
+            },
+            
+            aplicarDislexia(ativo) {
+                STATE.dislexiaAtiva = ativo;
+                document.body.classList.toggle('modo-dislexia', ativo);
+                DOM.btnToggleDislexia.classList.toggle('ativo', ativo);
+                LOGICA.salvarEstado();
+            },
+
+            // NOVO: Aplica Alto Contraste
+            aplicarHighContrast(ativo) {
+                STATE.isHighContrast = ativo;
+                document.body.classList.toggle('modo-alto-contraste', ativo);
+                DOM.btnToggleHighContrast.classList.toggle('ativo', ativo);
+                LOGICA.salvarEstado();
+            },
+            
+            aplicarTts(ativo) {
+                STATE.ttsAtivo = ativo;
+                DOM.btnToggleTts.classList.toggle('ativo', ativo);
+                if (!ativo) speechSynthesis.cancel();
+                LOGICA.salvarEstado();
+            },
+
+            falar(texto) {
+                if (!STATE.ttsAtivo) return;
+                speechSynthesis.cancel();
+                
+                let textoCompleto = texto;
+                if (DOM.telaJogo.style.display === 'block' && STATE.questaoAtual) {
+                    const opcoesTexto = Array.from(DOM.opcoesResposta.children).map(btn => btn.textContent.replace('[', '').replace(']', '')).join('. ');
+                    textoCompleto = `${DOM.questaoTexto.textContent}. Opções: ${opcoesTexto}`;
+                }
+                
+                const utterance = new SpeechSynthesisUtterance(textoCompleto);
+                utterance.lang = 'pt-BR';
+                speechSynthesis.speak(utterance);
+            },
+            
+            aplicarTamanhoFonte(scale) {
+                STATE.fontSizeScale = Math.min(1.4, Math.max(0.8, scale));
+                document.documentElement.style.setProperty('--font-scale', STATE.fontSizeScale);
+                
+                const percent = Math.round(STATE.fontSizeScale * 100);
+                DOM.currentZoom.textContent = `${percent}%`;
+                
+                LOGICA.salvarEstado();
+            },
+
+            mostrarFeedback(texto, tipo) {
+                DOM.feedbackMentor.textContent = texto;
+                DOM.feedbackMentor.className = 'feedback-box'; // Reset classes
+                if (tipo === 'acerto') DOM.feedbackMentor.classList.add('feedback-acerto');
+                else if (tipo === 'erro') DOM.feedbackMentor.classList.add('feedback-erro');
+                
+                UI.falar(`${texto}`);
+            },
+            
+            atualizarTokens() {
+                DOM.btnDica.textContent = `FEITIÇO DA REGRA (Tokens: ${STATE.tokens})`;
+                DOM.btnDica.disabled = STATE.tokens <= 0;
+            },
+
+            // NOVO: Atualiza display de Nível e XP na tela inicial
+            atualizarDisplayNivel() {
+                DOM.displayLevel.textContent = `Mago Nível ${STATE.playerLevel} | XP: ${STATE.xpAtual}/${STATE.xpForNextLevel}`;
+            },
+
+            // NOVO: Mostra a tela do Grimório (Relatório)
+            mostrarGrimorio() {
+                DOM.grimorioNivel.textContent = STATE.playerLevel;
+                DOM.grimorioXpAtual.textContent = STATE.xpAtual;
+                DOM.grimorioXpTotal.textContent = STATE.xpForNextLevel;
+                DOM.grimorioMaxCombo.textContent = `x${STATE.maxCombo}`;
+
+                DOM.grimorioTbody.innerHTML = '';
+                if (STATE.historicoErros.length > 0) {
+                    DOM.grimorioSemErros.style.display = 'none';
+                    DOM.grimorioTabela.style.display = 'table';
+
+                    // Limita aos 10 erros mais recentes
+                    STATE.historicoErros.slice(-10).reverse().forEach(erro => {
+                        const row = DOM.grimorioTbody.insertRow();
+                        row.insertCell().textContent = erro.pergunta;
+                        row.insertCell().textContent = erro.operacao.charAt(0).toUpperCase() + erro.operacao.slice(1);
+                        row.insertCell().textContent = erro.nivel.charAt(0).toUpperCase() + erro.nivel.slice(1);
+                    });
+                } else {
+                    DOM.grimorioSemErros.style.display = 'block';
+                    DOM.grimorioTabela.style.display = 'none';
+                }
+
+                UI.navegar('grimorio');
+            }
+        };
+
+        // ========================================================
+        // === MÓDULO DE LÓGICA DO JOGO E GAMIFICAÇÃO ===
+        // ========================================================
+
+        const LOGICA = {
+            salvarEstado() {
+                localStorage.setItem('matemagicaState', JSON.stringify(STATE));
+            },
+
+            carregarEstado() {
+                const savedState = localStorage.getItem('matemagicaState');
+                if (savedState) {
+                    const loaded = JSON.parse(savedState);
+                    Object.assign(STATE, loaded);
+                    
+                    // Garante que o modo professor não esteja ativo no carregamento inicial
+                    STATE.professorModeAtivo = false; 
+                    
+                    // Aplica as configurações de acessibilidade
+                    UI.aplicarTema(STATE.temaAtual);
+                    UI.aplicarDislexia(STATE.dislexiaAtiva);
+                    UI.aplicarLibras(STATE.librasAtivo);
+                    UI.aplicarTts(STATE.ttsAtivo);
+                    UI.aplicarHighContrast(STATE.isHighContrast); // NOVO
+                    UI.aplicarTamanhoFonte(STATE.fontSizeScale);
+                    
+                    // Atualiza campos do Modo Professor
+                    DOM.xpBaseInput.value = STATE.xpBase;
+                    DOM.rangeFacilMax.value = STATE.levelRanges.facil.max1;
+                    DOM.rangeFacilExpo.value = STATE.levelRanges.facil.expo;
+                    DOM.rangeMedioMax.value = STATE.levelRanges.medio.max1;
+                    DOM.rangeMedioExpo.value = STATE.levelRanges.medio.expo;
+                    DOM.rangeAvancadoMax.value = STATE.levelRanges.avancado.max1;
+                    DOM.rangeAvancadoExpo.value = STATE.levelRanges.avancado.expo;
+
+                    
+                } else {
+                    // Configurações padrão se não houver estado salvo
+                    UI.aplicarTts(true);
+                    UI.aplicarLibras(true);
+                    UI.aplicarTema('tema-escuro');
+                    UI.aplicarDislexia(false);
+                    UI.aplicarHighContrast(false);
+                    UI.aplicarTamanhoFonte(1.0);
+                    LOGICA.salvarEstado();
+                }
+                UI.atualizarDisplayNivel(); // Inicializa o display de nível
+            },
+            
+            selecionarOperacao(event) {
+                const operacao = event.target.dataset.operacao;
+                DOM.botoesOperacao.forEach(btn => btn.classList.remove('ativo'));
+                event.target.classList.add('ativo');
+
+                STATE.operacao = operacao;
+                DOM.btnIniciar.textContent = `INICIAR: ${operacao.toUpperCase()}!`;
+                DOM.btnIniciar.disabled = false;
+                
+                UI.falar(`Operação ${operacao} selecionada.`);
+                LOGICA.salvarEstado();
+            },
+
+            iniciarSessao() {
+                if (!STATE.operacao) return;
+                
+                STATE.nivel = DOM.selectNivel.value;
+                const modoAtivo = document.querySelector('.opcoes-container button.ativo[data-modo]');
+                STATE.modo = modoAtivo ? modoAtivo.dataset.modo : 'rapido';
+                
+                // Reset de sessão (Mantém XP, Tokens, Nível)
+                STATE.combo = 1;
+                STATE.acertosConsecutivos = 0;
+                STATE.tempoInicial = STATE.modo === 'rapido' ? 10 : 0;
+                STATE.tempoRestante = STATE.tempoInicial; 
+                
+                LOGICA.proximaQuestao();
+                UI.navegar('jogo');
+            },
+
+            proximaQuestao() {
+                DOM.btnAvancar.style.display = 'none';
+                DOM.opcoesResposta.innerHTML = '';
+                
+                let questao = CONTEUDO.gerarQuestao(STATE.operacao, STATE.nivel);
+
+                STATE.questaoAtual = questao;
+                DOM.questaoTexto.textContent = questao.pergunta;
+                DOM.questaoNumero.textContent = `Questão: ${Math.floor(STATE.xpAtual / STATE.xpBase) + 1} - ${STATE.operacao.toUpperCase()}`;
+                DOM.contadorCombo.textContent = `Tokens: ${STATE.tokens} | Combo: x${STATE.combo}`;
+                
+                questao.opcoes.forEach((opcao, index) => {
+                    const btn = document.createElement('button');
+                    btn.innerHTML = `[${index + 1}]) <span class="resposta-formatada">${opcao}</span>`;
+                    btn.dataset.resposta = opcao;
+                    btn.dataset.atalho = index + 1;
+                    btn.onclick = LOGICA.checarResposta;
+                    DOM.opcoesResposta.appendChild(btn);
+                });
+                
+                if (STATE.modo === 'rapido') {
+                    LOGICA.iniciarTimer();
+                    DOM.barraTempo.parentElement.style.display = 'block';
+                } else {
+                    clearInterval(STATE.timer);
+                    DOM.barraTempo.parentElement.style.display = 'none';
+                }
+                UI.atualizarTokens();
+                
+                UI.falar(`Questão ${DOM.questaoNumero.textContent}: ${questao.pergunta}`);
+            },
+
+            iniciarTimer() {
+                // ... (Lógica do Timer mantida)
+                clearInterval(STATE.timer);
+                STATE.tempoRestante = STATE.tempoInicial; // Reinicia o tempo para a nova questão (ou usa o tempo restante se for dica)
+                let stepCount = STATE.tempoRestante * 10;
+                
+                const atualizarBarra = () => {
+                    STATE.tempoRestante = stepCount / 10;
+                    
+                    const porcentagem = (STATE.tempoRestante / STATE.tempoInicial) * 100;
+                    DOM.barraTempo.style.width = `${porcentagem}%`;
+                    DOM.barraTempo.style.backgroundColor = porcentagem < 30 ? 'var(--cor-erro)' : 'var(--cor-primaria)';
+
+                    if (stepCount <= 0) {
+                        clearInterval(STATE.timer);
+                        LOGICA.finalizarQuestao(false, "Tempo esgotado! Sua magia foi lenta demais.", null);
+                        return;
+                    }
+                    stepCount--;
+                };
+                
+                DOM.barraTempo.style.transition = 'none';
+                DOM.barraTempo.style.width = `${(STATE.tempoRestante / STATE.tempoInicial) * 100}%`;
+                
+                setTimeout(() => DOM.barraTempo.style.transition = 'width 0.1s linear', 10); 
+                
+                STATE.timer = setInterval(atualizarBarra, 100);
+            },
+
+            checarResposta(event) {
+                clearInterval(STATE.timer);
+                const respostaUsuario = Number(event.target.dataset.resposta);
+                const acertou = respostaUsuario === STATE.questaoAtual.resposta;
+                LOGICA.finalizarQuestao(acertou, acertou ? null : "Resposta Incorreta.", event.target);
+            },
+            
+            finalizarQuestao(acertou, razao, elementoClicado) {
+                Array.from(DOM.opcoesResposta.children).forEach(btn => btn.disabled = true);
+                DOM.btnDica.disabled = true;
+
+                const correta = Array.from(DOM.opcoesResposta.children).find(btn => Number(btn.dataset.resposta) === STATE.questaoAtual.resposta);
+
+                if (acertou) {
+                    const tempoAjustado = STATE.modo === 'rapido' ? Math.max(1, STATE.tempoInicial - STATE.tempoRestante) : 1;
+                    
+                    // NOVO: Bônus de Variedade (15%)
+                    const isVariety = STATE.operacao !== STATE.lastOperation;
+                    const varietyMultiplier = isVariety ? 1.15 : 1; 
+
+                    const xpGanho = STATE.xpBase * STATE.combo * (STATE.modo === 'rapido' ? (STATE.tempoInicial / tempoAjustado) : 1) * varietyMultiplier;
+                    
+                    STATE.xpAtual += Math.round(xpGanho);
+                    STATE.acertosConsecutivos++;
+                    STATE.combo = Math.floor(STATE.acertosConsecutivos / 3) + 1;
+                    STATE.maxCombo = Math.max(STATE.maxCombo, STATE.combo); // Atualiza maior combo
+                    STATE.tokens += 1;
+                    STATE.lastOperation = STATE.operacao; // Atualiza última operação
+                    
+                    // NOVO: Checagem de Level Up
+                    if (STATE.xpAtual >= STATE.xpForNextLevel) {
+                        STATE.playerLevel++;
+                        STATE.xpForNextLevel += 500 * STATE.playerLevel; // Escalonamento
+                        UI.mostrarFeedback(`SUBIU DE NÍVEL! Agora você é Mago Nível ${STATE.playerLevel}! +${Math.round(xpGanho)} XP!`, 'acerto');
+                        UI.atualizarDisplayNivel();
+                    } else {
+                        const varietyText = isVariety ? " (Bônus de Variedade!)" : "";
+                        UI.mostrarFeedback(`${MENSAGENS.getRandomElogio()} +${Math.round(xpGanho)} XP!${varietyText}`, 'acerto');
+                    }
+                    
+                    if (elementoClicado) elementoClicado.classList.add('feedback-acerto');
+                    
+                } else {
+                    STATE.acertosConsecutivos = 0;
+                    STATE.combo = 1;
+                    STATE.lastOperation = null; // Reseta bônus de variedade
+
+                    STATE.historicoErros.push({ 
+                        pergunta: STATE.questaoAtual.pergunta, 
+                        respostaCorreta: STATE.questaoAtual.resposta,
+                        operacao: STATE.operacao, 
+                        nivel: STATE.nivel 
+                    });
+
+                    document.body.style.backgroundColor = 'rgba(231, 76, 60, 0.3)';
+                    setTimeout(() => UI.aplicarTema(STATE.temaAtual), 500);
+                    
+                    const textoCorreto = `${MENSAGENS.getRandomIncentivo()} A resposta correta era ${STATE.questaoAtual.resposta}.`;
+                    UI.mostrarFeedback(textoCorreto, 'erro');
+                    
+                    if (elementoClicado) elementoClicado.classList.add('feedback-erro');
+                }
+                
+                if (correta) {
+                    correta.classList.add('resposta-correta');
+                }
+                
+                LOGICA.salvarEstado();
+                DOM.contadorCombo.textContent = `Tokens: ${STATE.tokens} | Combo: x${STATE.combo}`;
+                DOM.btnAvancar.style.display = 'block';
+            },
+
+            usarDica() {
+                if (STATE.tokens <= 0) {
+                    UI.mostrarFeedback("Seus Tokens acabaram! Acerte mais questões para recarregar a magia.", 'erro');
+                    return;
+                }
+                
+                STATE.tokens -= 1;
+                
+                if (STATE.modo === 'rapido') {
+                    STATE.tempoRestante = Math.min(STATE.tempoInicial, STATE.tempoRestante + 5);
+                    LOGICA.iniciarTimer();
+                } 
+                
+                UI.mostrarFeedback(`Feitiço da Regra: ${STATE.questaoAtual.dica}`, 'dica');
+                
+                UI.atualizarTokens();
+                LOGICA.salvarEstado();
+            },
+
+            // --- FUNÇÕES MODO PROFESSOR ---
+            acessarProfessorMode() {
+                if (!STATE.professorModeAtivo) {
+                    const senha = prompt("Digite a senha de acesso para o Modo Professor:");
+                    if (senha === 'matemagicajfa') {
+                        STATE.professorModeAtivo = true;
+                        UI.navegar('professor');
+                    } else {
+                        alert("Senha incorreta. Acesso negado.");
+                    }
+                } else {
+                    UI.navegar('professor');
+                }
+            },
+            
+            entrarProfessorMode() {
+                // Sincroniza inputs com o STATE
+                DOM.xpBaseInput.value = STATE.xpBase;
+                DOM.rangeFacilMax.value = STATE.levelRanges.facil.max1;
+                DOM.rangeFacilExpo.value = STATE.levelRanges.facil.expo;
+                DOM.rangeMedioMax.value = STATE.levelRanges.medio.max1;
+                DOM.rangeMedioExpo.value = STATE.levelRanges.medio.expo;
+                DOM.rangeAvancadoMax.value = STATE.levelRanges.avancado.max1;
+                DOM.rangeAvancadoExpo.value = STATE.levelRanges.avancado.expo;
+
+                DOM.professorModeContainer.style.display = 'block';
+                UI.falar("Modo Professor Mago ativado.");
+            },
+
+            sairProfessorMode() {
+                // Salva XP Base
+                STATE.xpBase = Number(DOM.xpBaseInput.value);
+
+                // Salva Ranges (NOVO)
+                STATE.levelRanges.facil.max1 = Number(DOM.rangeFacilMax.value);
+                STATE.levelRanges.facil.expo = Number(DOM.rangeFacilExpo.value);
+                STATE.levelRanges.medio.max1 = Number(DOM.rangeMedioMax.value);
+                STATE.levelRanges.medio.expo = Number(DOM.rangeMedioExpo.value);
+                STATE.levelRanges.avancado.max1 = Number(DOM.rangeAvancadoMax.value);
+                STATE.levelRanges.avancado.expo = Number(DOM.rangeAvancadoExpo.value);
+
+                LOGICA.salvarEstado();
+                UI.navegar('inicial');
+                UI.falar("Configurações salvas. Saindo do Modo Professor.");
+            },
+
+            limparHistorico() {
+                if (confirm("ATENÇÃO: Isso limpará permanentemente todo o progresso (XP, Tokens, Erros). Continuar?")) {
+                    localStorage.removeItem('matemagicaState');
+                    // Reinicializa apenas as variáveis que dependem do localStorage
+                    Object.assign(STATE, { 
+                        xpAtual: 0, tokens: 3, historicoErros: [], 
+                        playerLevel: 1, xpForNextLevel: 500, maxCombo: 1,
+                        professorModeAtivo: false 
+                    });
+                    LOGICA.salvarEstado();
+                    alert("Histórico e dados de progresso limpos. Recarregando o aplicativo...");
+                    location.reload(); 
+                }
+            },
+
+            // NOVO: Exportação de Histórico para CSV
+            exportarHistorico() {
+                if (STATE.historicoErros.length === 0) {
+                    alert("Não há erros registrados para exportar.");
+                    return;
+                }
+                const header = "Pergunta;Resposta Correta;Operacao;Nivel\n";
+                const rows = STATE.historicoErros.map(e => `${e.pergunta};${e.respostaCorreta};${e.operacao};${e.nivel}`).join('\n');
+                const csv = header + rows;
+                
+                const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+                const link = document.createElement("a");
+                link.href = URL.createObjectURL(blob);
+                link.download = `Matemagica_Historico_Erros_${new Date().toISOString().slice(0, 10)}.csv`;
+                link.click();
+                
+                UI.mostrarFeedback('Histórico exportado com sucesso!', 'acerto');
+            }
+        };
+
+        // ===============================================
+        // === INICIALIZAÇÃO E EVENT LISTENERS ===
+        // ===============================================
+        document.addEventListener('DOMContentLoaded', () => {
+            LOGICA.carregarEstado();
+            UI.navegar('inicial');
+            
+            // --- Eventos de Acessibilidade Rápida ---
+            DOM.btnToggleLibras.onclick = () => UI.aplicarLibras(!STATE.librasAtivo);
+            DOM.btnToggleTts.onclick = () => UI.aplicarTts(!STATE.ttsAtivo);
+            DOM.btnToggleDislexia.onclick = () => UI.aplicarDislexia(!STATE.dislexiaAtiva);
+            DOM.btnToggleHighContrast.onclick = () => UI.aplicarHighContrast(!STATE.isHighContrast); // NOVO
+            DOM.btnZoomIn.onclick = () => UI.aplicarTamanhoFonte(STATE.fontSizeScale + 0.1);
+            DOM.btnZoomOut.onclick = () => UI.aplicarTamanhoFonte(STATE.fontSizeScale - 0.1);
+            
+            // --- Eventos de Inicialização ---
+            DOM.botoesOperacao.forEach(btn => {
+                btn.onclick = LOGICA.selecionarOperacao;
+            });
+            DOM.btnModoRapido.onclick = (e) => { DOM.btnModoNormal.classList.remove('ativo'); e.target.classList.add('ativo'); LOGICA.salvarEstado(); };
+            DOM.btnModoNormal.onclick = (e) => { DOM.btnModoRapido.classList.remove('ativo'); e.target.classList.add('ativo'); LOGICA.salvarEstado(); };
+            DOM.btnIniciar.onclick = LOGICA.iniciarSessao;
+            DOM.btnGrimorio.onclick = () => UI.navegar('grimorio'); // NOVO
+            
+            // --- Eventos de Jogo ---
+            document.getElementById('btn-voltar-jogo').onclick = () => UI.navegar('inicial');
+            DOM.btnAvancar.onclick = LOGICA.proximaQuestao;
+            DOM.btnDica.onclick = LOGICA.usarDica;
+            
+            // --- Eventos de Configurações Adicionais ---
+            document.getElementById('btn-config').onclick = () => UI.navegar('config');
+            document.getElementById('btn-voltar-config').onclick = () => UI.navegar('inicial');
+            document.getElementById('btn-voltar-grimorio').onclick = () => UI.navegar('inicial'); // NOVO
+            DOM.toggleTema.onchange = (e) => { 
+                UI.aplicarTema(e.target.checked ? 'tema-claro' : 'tema-escuro'); 
+                LOGICA.salvarEstado(); 
+            };
+            
+            // --- Eventos Modo Professor ---
+            DOM.btnModoProfessor.onclick = LOGICA.acessarProfessorMode;
+            DOM.btnSairProfessor.onclick = LOGICA.sairProfessorMode;
+            DOM.limparHistorico.onclick = LOGICA.limparHistorico;
+            DOM.btnExportarHistorico.onclick = LOGICA.exportarHistorico; // NOVO
+            
+            // --- Atalhos de Teclado ---
+            document.addEventListener('keydown', (e) => {
+                if (DOM.telaJogo.style.display === 'block') {
+                    if (DOM.btnAvancar.style.display === 'none' && e.key >= '1' && e.key <= '4') {
+                        const btn = document.querySelector(`[data-atalho="${e.key}"]`);
+                        if (btn && !btn.disabled) {
+                            btn.click();
+                            e.preventDefault();
+                        }
+                    }
+                    if ((e.key === 'Enter' || e.key === ' ') && DOM.btnAvancar.style.display !== 'none') {
+                        DOM.btnAvancar.click();
+                        e.preventDefault();
+                    }
+                }
+            });
+            
+            UI.atualizarTokens();
+        });
+    </script>
 </body>
 </html>
