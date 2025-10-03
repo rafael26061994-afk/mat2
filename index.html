@@ -1,24 +1,3 @@
-
-
-## Código HTML e JavaScript com VLibras e Modo Claro
-
-### 1\. Alterações no HTML (`<head>` e `<body>`)
-
-  * Removida a linha de script do VLibras que causa conflito, mantendo apenas a marcação `vw` e `vw-access-button` no `<body>`.
-  * A classe inicial do `<body>` foi alterada para **`tema-escuro`** (para funcionar com a lógica de alternância).
-
-### 2\. Alterações no CSS (`<style>`)
-
-  * Criada a classe **`.tema-escuro`** no CSS (já com suas cores originais) para funcionar como o tema base.
-  * **Melhorado o seletor** do modo claro para garantir que o fundo do `body` seja branco e o texto seja preto, conforme solicitado (embora suas variáveis já fizessem isso).
-
-### 3\. Alterações no JavaScript
-
-  * Implementada a função `UI.carregarTema()` e `UI.alternarTema()` que usa o `toggle-tema` checkbox para aplicar a classe **`tema-claro`** ou **`tema-escuro`** ao `body`.
-
-<!-- end list -->
-
-```html
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -1223,4 +1202,3 @@
     </script>
 </body>
 </html>
-```
