@@ -1,0 +1,243 @@
+/* =================== styles.css V. 24.10 =================== */
+
+/* --- VARIÁVEIS CSS E TEMAS (ACESSIBILIDADE) --- */
+:root {
+    /* Tema Padrão (Mago) */
+    --cor-fundo-geral: #282c34;
+    --cor-container: rgba(255, 255, 255, 0.1); 
+    --cor-primaria: #1E90FF; /* Azul do Mago */
+    --cor-secundaria: #5c478c; /* Roxo */
+    --cor-destaque: #FFD700; /* Dourado */
+    --cor-acerto: #4CAF50;   /* Verde */
+    --cor-erro: #F44336;     /* Vermelho */
+    --cor-texto-principal: white;
+    --cor-texto-secundario: #ccc;
+    --fonte-principal: "Trebuchet MS", sans-serif;
+    --line-height: 1.4;
+}
+
+.high-contrast {
+    /* Tema de Alto Contraste (Inclusivo) */
+    --cor-fundo-geral: #FFFFFF;
+    --cor-container: #F0F0F0; 
+    --cor-primaria: #000000; 
+    --cor-secundaria: #333333;
+    --cor-destaque: #0056b3; 
+    --cor-acerto: #008000;
+    --cor-erro: #CC0000;
+    --cor-texto-principal: #000000;
+    --cor-texto-secundario: #333333;
+    --fonte-principal: "Verdana", "Arial", sans-serif;
+    --line-height: 1.6;
+}
+
+/* --- ESTILOS GERAIS --- */
+body {
+    background-color: var(--cor-fundo-geral);
+    color: var(--cor-texto-principal);
+    font-family: var(--fonte-principal);
+    line-height: var(--line-height);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    padding: 20px;
+    transition: all 0.5s ease; /* Transição suave na troca de tema */
+}
+
+#app-container {
+    background-color: var(--cor-fundo-geral);
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+    width: 100%;
+    max-width: 600px;
+    min-height: 600px;
+    display: flex;
+    flex-direction: column;
+}
+
+/* --- HUD --- */
+#hud {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 15px;
+    margin-bottom: 20px;
+    border-bottom: 2px solid var(--cor-secundaria);
+}
+
+#player-info { font-weight: bold; font-size: 1.1em; }
+#xp-info span { margin-left: 10px; }
+
+/* --- BOTÕES E TELAS --- */
+.screen {
+    background-color: var(--cor-container);
+    padding: 20px;
+    border-radius: 8px;
+    margin-top: 20px;
+}
+
+.button-primary, .button-secondary {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: opacity 0.2s, transform 0.1s;
+    margin-top: 10px;
+}
+
+.button-primary {
+    background-color: var(--cor-primaria);
+    color: var(--cor-texto-principal);
+}
+
+.button-secondary {
+    background-color: var(--cor-secundaria);
+    color: var(--cor-texto-principal);
+}
+
+.button-primary:hover, .button-secondary:hover {
+    opacity: 0.9;
+}
+
+/* --- TELA DE JOGO --- */
+#game-screen {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    flex-grow: 1;
+}
+
+.big-text {
+    font-size: 3em;
+    margin: 30px 0;
+}
+
+#answer-input {
+    padding: 12px;
+    font-size: 1.5em;
+    text-align: center;
+    width: 80%;
+    max-width: 250px;
+    border: 2px solid var(--cor-secundaria);
+    border-radius: 6px;
+    background-color: var(--cor-container);
+    color: var(--cor-texto-principal);
+    margin: 20px 0;
+}
+
+.feedback-text {
+    font-weight: bold;
+    font-size: 1.2em;
+    height: 30px; /* Mantém o espaço para evitar pulo de layout */
+}
+
+/* --- RANKING (GRIMÓRIO) --- */
+#ranking-local {
+    margin-top: 30px;
+    padding-top: 20px;
+    border-top: 1px solid var(--cor-secundaria);
+}
+
+.ranking-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.tab-button {
+    background-color: var(--cor-secundaria);
+    color: var(--cor-texto-principal);
+    border: none;
+    padding: 8px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.tab-button.active {
+    background-color: var(--cor-primaria);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+}
+
+#ranking-table {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: var(--cor-container);
+    border-radius: 8px;
+    overflow: hidden;
+    color: var(--cor-texto-principal);
+}
+
+#ranking-table thead th {
+    background-color: var(--cor-primaria);
+    color: var(--cor-texto-principal);
+    padding: 10px;
+    text-align: left;
+    font-size: 0.9em;
+}
+
+#ranking-table tbody td {
+    padding: 10px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+#ranking-table tbody tr:nth-child(even) {
+    background-color: rgba(0, 0, 0, 0.1);
+}
+
+/* --- FRAÇÕES (UX/UI) --- */
+.fracao-container {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    font-size: 2.5em; 
+    font-weight: bold;
+    margin: 30px 0;
+}
+
+.fracao {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    line-height: 1;
+}
+
+.barra {
+    width: 100%;
+    height: 3px; 
+    background-color: var(--cor-texto-principal);
+    margin: 2px 0;
+}
+
+.numerador, .denominador {
+    padding: 0 5px;
+}
+
+.hidden {
+    display: none !important;
+}
+
+/* --- FEEDBACK VISUAL (NOVO RECORDE) --- */
+.new-record-animation {
+    font-size: 1.8em;
+    font-weight: 900;
+    color: var(--cor-destaque); 
+    text-shadow: 0 0 10px var(--cor-destaque), 0 0 20px rgba(255, 215, 0, 0.6);
+    padding: 10px 20px;
+    border: 3px solid var(--cor-destaque);
+    border-radius: 10px;
+    margin: 20px auto;
+    width: fit-content;
+    animation: flash-record 1.5s infinite alternate;
+}
+
+@keyframes flash-record {
+    from { opacity: 1; transform: scale(1); }
+    to { opacity: 0.8; transform: scale(1.05); }
+}

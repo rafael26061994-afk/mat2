@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Matemágica - O Desafio do Mago</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div id="app-container">
+        
+        <header id="hud">
+            <div id="player-info">
+                <span id="player-name">Mago(a) Desconhecido(a)</span>
+            </div>
+            <div id="xp-info">
+                <span id="level-display">Nível 1</span>
+                <span id="xp-counter">XP: 0</span>
+            </div>
+            <button id="open-grimorio-button" class="button-secondary">Grimório (Progresso)</button>
+        </header>
+
+        <main id="game-screen">
+            <div id="question-area">
+                
+                <p id="enunciado-questao" class="big-text"></p>
+                
+                <div id="fracao-question-container" class="fracao-container hidden">
+                    <div class="fracao">
+                        <span class="numerador" id="n1">?</span>
+                        <span class="barra"></span>
+                        <span class="denominador" id="d1">?</span>
+                    </div>
+                    
+                    <span class="operador" id="operador-fracao">+</span>
+
+                    <div class="fracao">
+                        <span class="numerador" id="n2">?</span>
+                        <span class="barra"></span>
+                        <span class="denominador" id="d2">?</span>
+                    </div>
+                    
+                    <span class="operador">=</span>
+                </div>
+            </div>
+
+            <input type="number" id="answer-input" placeholder="Sua Resposta">
+            <button id="submit-answer-button" class="button-primary">Lançar Feitiço (Responder)</button>
+
+            <p id="feedback-message" class="feedback-text"></p>
+        </main>
+
+        <section id="menu-screen" class="screen">
+            <h2>Escolha seu Desafio Mágico</h2>
+            <select id="operation-select">
+                <option value="soma">Adição Mágica</option>
+                <option value="subtracao">Subtração Arcana</option>
+                <option value="multiplicacao">Multiplicação Estelar</option>
+                <option value="divisao">Divisão Elemental</option>
+                <option value="fracoes">Frações Proibidas (Novo!)</option>
+                <option value="todas">Desafio do Arquimago</option>
+            </select>
+            <select id="difficulty-select">
+                <option value="facil">Aprendiz (Fácil)</option>
+                <option value="medio">Mago (Médio)</option>
+                <option value="dificil">Arquimago (Difícil)</option>
+            </select>
+            <button id="start-game-button" class="button-primary">Começar Jornada</button>
+        </section>
+
+        <section id="game-result-screen" class="screen hidden">
+            <h2>Fim da Rodada!</h2>
+            <div id="record-banner"></div> 
+            
+            <p>XP Total Ganho: <span id="final-xp">0</span></p>
+            <p>Acertos: <span id="final-acertos">0</span></p>
+            <p>Combo Máximo: <span id="final-combo">0</span></p>
+            
+            <button id="return-to-menu-button" class="button-primary">Voltar ao Menu</button>
+        </section>
+
+        <section id="grimorio" class="screen hidden">
+            <h2>O Grimório da Sabedoria</h2>
+            
+            <div id="progresso-info">
+                <h3>Seu Progresso Atual</h3>
+                <p>Nível de Mago: <span id="grimorio-level">1</span></p>
+                <p>XP Acumulado: <span id="grimorio-xp">0</span></p>
+            </div>
+            
+            <div id="configuracoes-acessibilidade">
+                <h3>Configurações Visuais</h3>
+                <button id="toggle-contrast-button" class="button-secondary">
+                    Modo Alto Contraste: <span id="contrast-status">DESLIGADO</span>
+                </button>
+            </div>
+            
+            <section id="ranking-local">
+                <h3>Ranking de Maestria (Local)</h3>
+                
+                <div class="ranking-tabs">
+                    <button class="tab-button active" data-op="soma">Soma</button>
+                    <button class="tab-button" data-op="subtracao">Subtração</button>
+                    <button class="tab-button" data-op="multiplicacao">Multiplicação</button>
+                    <button class="tab-button" data-op="divisao">Divisão</button>
+                    <button class="tab-button" data-op="fracoes">Frações</button>
+                    <button class="tab-button" data-op="todas">Desafio</button>
+                </div>
+
+                <table id="ranking-table">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>XP</th>
+                            <th>Acertos</th>
+                            <th>Combo Máx.</th>
+                            <th>Data</th>
+                        </tr>
+                    </thead>
+                    <tbody id="ranking-table-body">
+                        </tbody>
+                </table>
+            </section>
+            
+            <button id="close-grimorio-button" class="button-primary">Fechar Grimório</button>
+        </section>
+        
+    </div>
+    <script src="app.js" defer></script>
+</body>
+</html>

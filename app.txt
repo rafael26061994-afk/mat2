@@ -1,0 +1,381 @@
+// =================== app.js V. 24.10 (Refatorado em Classes) ===================
+
+// --- UTILITIES (Funções Auxiliares) ---
+function getRandomInt(min, max) {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+// --- 1. CLASSE DE ESTADO E PERSISTÊNCIA ---
+class GameState {
+    constructor() {
+        this.state = {
+            playerName: "Mago(a) Desconhecido(a)",
+            xp: 0,
+            level: 1,
+            operation: 'soma',
+            difficulty: 'facil',
+            jogo: null, // Objeto temporário para a rodada atual
+            
+            // NOVO: Persistência do Tema de Acessibilidade
+            isHighContrast: false, 
+            
+            // NOVO: Estrutura de Ranking
+            ranking: {
+                'soma': [],
+                'subtracao': [],
+                'multiplicacao': [],
+                'divisao': [],
+                'fracoes': [],
+                'todas': []
+            },
+            
+            // NOVO: Estado temporário para a UI (limpo após exibição)
+            novoRecordeStatus: false, 
+        };
+        this.loadState();
+        this.aplicarTemaInicial(); 
+    }
+
+    loadState() {
+        const savedState = localStorage.getItem('matemagicaState');
+        if (savedState) {
+            this.state = JSON.parse(savedState);
+        }
+    }
+
+    saveState() {
+        localStorage.setItem('matemagicaState', JSON.stringify(this.state));
+    }
+    
+    get(key) {
+        return this.state[key];
+    }
+    
+    set(key, value) {
+        this.state[key] = value;
+        this.saveState();
+    }
+    
+    // NOVO: Aplica o tema salvo ao carregar a página
+    aplicarTemaInicial() {
+        if (this.state.isHighContrast) {
+            document.body.classList.add('high-contrast');
+        } else {
+            document.body.classList.remove('high-contrast');
+        }
+    }
+    
+    // NOVO: Alterna o tema
+    toggleHighContrast() {
+        const novoTema = !this.state.isHighContrast;
+        this.state.isHighContrast = novoTema;
+        this.aplicarTemaInicial(); // Aplica a mudança
+        this.saveState();
+    }
+}
+
+// --- 2. CLASSE DE LÓGICA DO JOGO ---
+class GameLogic {
+    constructor(stateManager) {
+        this.stateManager = stateManager; 
+    }
+
+    // --- LÓGICA DO JOGO ---
+    iniciarNovoJogo(operacao, dificuldade) {
+        this.stateManager.set('operation', operacao);
+        this.stateManager.set('difficulty', dificuldade);
+        this.stateManager.set('jogo', {
+            pontos: 0,
+            acertos: 0,
+            erros: 0,
+            comboAtual: 0,
+            maxCombo: 0,
+            xpTotal: 0,
+            questaoAtual: null
+        });
+        this.gerarNovaQuestao();
+    }
+    
+    // NOVO: Geração de Questões de Fração
+    gerarQuestaoFracao() {
+        // [PROFESSOR DE MATEMÁTICA]: Lógica simplificada (denominadores iguais)
+        const d1 = getRandomInt(2, 8);
+        const d2 = d1; 
+        const n1 = getRandomInt(1, d1 - 1);
+        const n2 = getRandomInt(1, d2 - 1);
+
+        const questao = {
+            tipo: 'fracao',
+            enunciado: `${n1}/${d1} + ${n2}/${d2}`,
+            // Resultado na forma simplificada (exigirá uma função de simplificação)
+            respostaCorreta: (n1 + n2) + '/' + d1 // Resposta não simplificada
+        };
+        
+        return questao;
+    }
+
+    // LÓGICA: Função de geração de questões
+    gerarNovaQuestao() {
+        const operacao = this.stateManager.get('operation');
+        const dificuldade = this.stateManager.get('difficulty');
+        let num1, num2, resultado, questao;
+
+        if (operacao === 'fracoes') {
+            questao = this.gerarQuestaoFracao();
+        } else {
+            // Lógica existente para operações básicas (soma, subtracao, multiplicacao, divisao, todas)
+            // ... (Mantenha sua lógica de geração aqui)
+            
+            // Exemplo para Soma:
+            num1 = getRandomInt(1, 10 * (dificuldade === 'facil' ? 1 : 10));
+            num2 = getRandomInt(1, 10 * (dificuldade === 'facil' ? 1 : 10));
+            resultado = num1 + num2;
+            questao = { 
+                tipo: operacao, 
+                enunciado: `${num1} ${operacao === 'soma' ? '+' : '*'} ${num2}`, 
+                respostaCorreta: resultado 
+            };
+        }
+
+        this.stateManager.set('jogo', {
+            ...this.stateManager.get('jogo'),
+            questaoAtual: questao
+        });
+
+        // A UI precisa renderizar essa questão
+        gameUI.renderizarQuestao(questao);
+    }
+
+    verificarResposta(respostaUsuario) {
+        const jogo = this.stateManager.get('jogo');
+        const questao = jogo.questaoAtual;
+        const acerto = (String(respostaUsuario) === String(questao.respostaCorreta));
+        
+        if (acerto) {
+            // Lógica de XP, Combo, etc.
+            
+            // ... (Lógica existente de acerto)
+            
+            this.gerarNovaQuestao();
+        } else {
+            // Lógica de Erro
+            
+            // ... (Lógica existente de erro)
+            
+            this.gerarNovaQuestao();
+        }
+        
+        if (jogo.acertos + jogo.erros >= 10) { // Fim do jogo
+            this.finalizarJogo();
+        }
+    }
+    
+    // NOVO: Lógica de Salvamento e Verificação de Recorde
+    salvarRanking(operacaoAtual, xpGanho, numAcertos, numCombos) {
+        const records = this.stateManager.get('ranking')[operacaoAtual];
+        
+        const novoRecorde = {
+            xp: xpGanho,
+            acertos: numAcertos,
+            combos: numCombos,
+            data: new Date().toLocaleDateString('pt-BR')
+        };
+        
+        // NOVO: VERIFICA SE É NOVO RECORD
+        const isNovoRecordePessoal = (
+            records.length === 0 || 
+            xpGanho > records[0].xp || 
+            (xpGanho === records[0].xp && numCombos > records[0].combos)
+        );
+        
+        records.push(novoRecorde);
+        records.sort((a, b) => {
+            if (b.xp !== a.xp) return b.xp - a.xp;
+            return b.combos - a.combos;
+        });
+        
+        const novoRanking = records.slice(0, 5);
+        
+        // NOVO: Atualiza o estado
+        const todosRankings = this.stateManager.get('ranking');
+        todosRankings[operacaoAtual] = novoRanking;
+        this.stateManager.set('ranking', todosRankings);
+
+        return isNovoRecordePessoal;
+    }
+
+    finalizarJogo() {
+        const jogo = this.stateManager.get('jogo');
+        
+        // NOVO: Salva o ranking e verifica o status
+        const isNovoRecorde = this.salvarRanking(
+            this.stateManager.get('operation'), 
+            jogo.xpTotal, 
+            jogo.acertos, 
+            jogo.maxCombo
+        );
+
+        // Define o status temporário para a UI
+        this.stateManager.set('novoRecordeStatus', isNovoRecorde);
+        
+        gameUI.mostrarTelaResultado(jogo);
+    }
+}
+
+// --- 3. CLASSE DE INTERFACE ---
+class GameUI {
+    constructor(logic) {
+        this.logic = logic;
+        this.state = logic.stateManager; // Acesso facilitado ao estado
+    }
+    
+    atualizarHUD() {
+        document.getElementById('player-name').textContent = this.state.get('playerName');
+        document.getElementById('level-display').textContent = `Nível ${this.state.get('level')}`;
+        document.getElementById('xp-counter').textContent = `XP: ${this.state.get('xp')}`;
+    }
+
+    mostrarTela(screenId) {
+        document.querySelectorAll('.screen').forEach(s => s.classList.add('hidden'));
+        document.getElementById(screenId).classList.remove('hidden');
+    }
+
+    renderizarQuestao(questao) {
+        const enunciadoElement = document.getElementById('enunciado-questao');
+        const fracaoContainer = document.getElementById('fracao-question-container');
+        
+        if (questao.tipo === 'fracao') {
+            enunciadoElement.classList.add('hidden');
+            fracaoContainer.classList.remove('hidden');
+
+            // [LÓGICA FRAÇÕES]: Assumindo que o enunciado é 'n1/d1 + n2/d2'
+            const partes = questao.enunciado.split(' ');
+            const [n1, d1] = partes[0].split('/').map(Number);
+            const [n2, d2] = partes[2].split('/').map(Number);
+            
+            document.getElementById('n1').textContent = n1;
+            document.getElementById('d1').textContent = d1;
+            document.getElementById('n2').textContent = n2;
+            document.getElementById('d2').textContent = d2;
+            document.getElementById('operador-fracao').textContent = partes[1];
+
+        } else {
+            // Operações básicas
+            enunciadoElement.classList.remove('hidden');
+            fracaoContainer.classList.add('hidden');
+            enunciadoElement.textContent = questao.enunciado + ' = ?';
+        }
+
+        document.getElementById('answer-input').value = '';
+        document.getElementById('answer-input').focus();
+    }
+    
+    mostrarTelaResultado(jogo) {
+        document.getElementById('final-xp').textContent = jogo.xpTotal;
+        document.getElementById('final-acertos').textContent = jogo.acertos;
+        document.getElementById('final-combo').textContent = jogo.maxCombo;
+        
+        const recordBanner = document.getElementById('record-banner');
+        
+        if (this.state.get('novoRecordeStatus')) {
+            recordBanner.innerHTML = '<div class="new-record-animation">🎉 NOVO RECORDE PESSOAL! 🎉</div>';
+            // [UX/GAMIFICAÇÃO]: Adicionar som de celebração aqui!
+        } else {
+            recordBanner.innerHTML = '';
+        }
+        
+        // Limpa o status temporário
+        this.state.set('novoRecordeStatus', false); 
+        
+        this.mostrarTela('game-result-screen');
+    }
+
+    // NOVO: Função para renderizar o ranking
+    renderizarRankingGrimorio(operacao = 'soma') {
+        const tableBody = document.getElementById('ranking-table-body');
+        const records = this.state.get('ranking')[operacao] || [];
+        tableBody.innerHTML = ''; 
+
+        if (records.length === 0) {
+            tableBody.innerHTML = '<tr><td colspan="5">Nenhum recorde registrado nesta operação. Jogue agora!</td></tr>';
+            return;
+        }
+
+        records.forEach((record, index) => {
+            const newRow = tableBody.insertRow();
+            newRow.insertCell().textContent = index + 1;
+            newRow.insertCell().textContent = record.xp;
+            newRow.insertCell().textContent = record.acertos;
+            newRow.insertCell().textContent = record.combos;
+            newRow.insertCell().textContent = record.data;
+        });
+    }
+
+    // NOVO: Atualiza o status do botão de contraste
+    updateContrastButton() {
+        const isHighContrast = this.state.get('isHighContrast');
+        document.getElementById('contrast-status').textContent = isHighContrast ? 'LIGADO' : 'DESLIGADO';
+    }
+}
+
+// --- INICIALIZAÇÃO DA APLICAÇÃO ---
+
+let stateManager, gameLogic, gameUI;
+
+document.addEventListener('DOMContentLoaded', () => {
+    // 1. Instancia as classes
+    stateManager = new GameState();
+    gameLogic = new GameLogic(stateManager);
+    gameUI = new GameUI(gameLogic);
+
+    // 2. Event Listeners do Menu
+    document.getElementById('start-game-button').addEventListener('click', () => {
+        const operacao = document.getElementById('operation-select').value;
+        const dificuldade = document.getElementById('difficulty-select').value;
+        gameLogic.iniciarNovoJogo(operacao, dificuldade);
+        gameUI.mostrarTela('game-screen');
+    });
+
+    // 3. Event Listener da Resposta
+    document.getElementById('submit-answer-button').addEventListener('click', () => {
+        const resposta = document.getElementById('answer-input').value;
+        gameLogic.verificarResposta(resposta);
+    });
+    
+    // 4. Event Listener para Voltar ao Menu
+    document.getElementById('return-to-menu-button').addEventListener('click', () => {
+        gameUI.mostrarTela('menu-screen');
+        gameUI.atualizarHUD();
+    });
+
+    // 5. Event Listeners do Grimório
+    document.getElementById('open-grimorio-button').addEventListener('click', () => {
+        gameUI.renderizarRankingGrimorio('soma'); // Inicializa o ranking na aba Soma
+        gameUI.updateContrastButton();
+        gameUI.mostrarTela('grimorio');
+    });
+
+    document.getElementById('close-grimorio-button').addEventListener('click', () => {
+        gameUI.mostrarTela('menu-screen');
+    });
+    
+    // 6. NOVO: Event Listeners das Abas do Ranking
+    document.querySelectorAll('#ranking-local .tab-button').forEach(button => {
+        button.addEventListener('click', (event) => {
+            const selectedOp = event.target.getAttribute('data-op');
+            document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            gameUI.renderizarRankingGrimorio(selectedOp);
+        });
+    });
+
+    // 7. NOVO: Event Listener do Toggle de Contraste
+    document.getElementById('toggle-contrast-button').addEventListener('click', () => {
+        stateManager.toggleHighContrast();
+        gameUI.updateContrastButton();
+    });
+
+    // Chamada inicial
+    gameUI.atualizarHUD();
+    gameUI.mostrarTela('menu-screen');
+});
